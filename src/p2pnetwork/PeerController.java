@@ -1,5 +1,6 @@
 package p2pnetwork;
 
+import Interfaces.ICommunicationListener;
 import Util.ApplicationSettings;
 import communication.Server;
 import communication.Client;
@@ -10,7 +11,7 @@ import java.util.logging.Logger;
  *
  * @author Moreno
  */
-public class PeerController {
+public class PeerController implements ICommunicationListener{
     
     private static final Logger LOGGER = Logger.getLogger(PeerController.class.getCanonicalName());
     
@@ -28,6 +29,9 @@ public class PeerController {
         server = new Server();
         
         client = new Client();
+        
+        server.AddListener(this);
+        client.AddListener(this);
         
         Thread serverThread = new Thread(server);
         Thread clientThread = new Thread(client);
@@ -67,6 +71,61 @@ public class PeerController {
         server.Stop();
         
         isRunning = false;
+    }
+
+    @Override
+    public void OnClientStarted() {
+        LOGGER.log(Level.INFO, "Client has started!");
+    }
+
+    @Override
+    public void OnClientConnectedToServer() {
+        LOGGER.log(Level.INFO, "Client connected to a server!");
+    }
+
+    @Override
+    public void OnClientDisconnected() {
+        LOGGER.log(Level.INFO, "Client has disconnected!");
+    }
+
+    @Override
+    public void OnClientError() {
+        LOGGER.log(Level.SEVERE, "Client has an error!");
+    }
+
+    @Override
+    public void OnClientSentMessage() {
+        LOGGER.log(Level.INFO, "Client has sent a message!");
+    }
+
+    @Override
+    public void OnClientRecievedMessage() {
+        LOGGER.log(Level.INFO, "Client has recieved a message!");
+    }
+
+    @Override
+    public void OnServerStarted() {
+        LOGGER.log(Level.INFO, "Server started!");
+    }
+
+    @Override
+    public void OnServerAcceptedConnection() {
+         LOGGER.log(Level.INFO, "Server has accepted incoming connection!");
+    }
+
+    @Override
+    public void OnServerError() {
+         LOGGER.log(Level.SEVERE, "Server has an error!");
+    }
+
+    @Override
+    public void OnServerSentMessage() {
+         LOGGER.log(Level.INFO, "Server has sent a message!");
+    }
+
+    @Override
+    public void OnServerRecievedMessage() {
+         LOGGER.log(Level.INFO, "Server has recieved a message!");
     }
     
 }

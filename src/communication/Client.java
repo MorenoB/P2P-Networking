@@ -6,14 +6,19 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import Interfaces.ICommunicationListener;
 
 /**
  *
  * @author Moreno
  */
 public class Client implements Runnable {
+
+    private final List<ICommunicationListener> listeners = new ArrayList<>();
 
     private boolean hasConnection;
     private boolean running;
@@ -32,18 +37,29 @@ public class Client implements Runnable {
         running = true;
 
         while (running) {
-            
+
             /*if(RunnablesHaveStopped())
             {
                 LOGGER.log(Level.SEVERE, "ListenRunnable/SendRunnable stopped running! Shutting down connection...");
                 StopConnection();
             }*/
-
             try {
                 Thread.sleep(ApplicationSettings.CYCLEWAIT);
             } catch (InterruptedException ex) {
                 LOGGER.log(Level.SEVERE, null, ex);
             }
+        }
+    }
+
+    public void AddListener(ICommunicationListener toAdd) {
+        listeners.add(toAdd);
+        
+        if (listenRunnable != null) {
+            listenRunnable.AddListener(toAdd);
+        }
+        
+        if (sendRunnable != null) {
+            sendRunnable.AddListener(toAdd);
         }
     }
 
@@ -56,11 +72,18 @@ public class Client implements Runnable {
             connectedSocket = new Socket(host, port);
             hasConnection = connectedSocket.isConnected();
 
+            listeners.stream().forEach((sl) -> {
+                sl.OnClientConnectedToServer();
+            });
+
             LOGGER.log(Level.INFO, "Succesfully connected to {0}", connectedSocket.getInetAddress().toString());
 
             listenRunnable = new ListenRunnable("CLIENT", new BufferedReader(new InputStreamReader(connectedSocket.getInputStream())));
             sendRunnable = new SendRunnable("CLIENT", new PrintWriter(connectedSocket.getOutputStream(), true));
-
+            
+            listenRunnable.UpdateListeners(listeners);
+            sendRunnable.UpdateListeners(listeners);
+            
             Thread listenThread = new Thread(listenRunnable);
             Thread sendThread = new Thread(sendRunnable);
 
@@ -68,6 +91,10 @@ public class Client implements Runnable {
             sendThread.start();
 
         } catch (IOException ex) {
+
+            listeners.stream().forEach((sl) -> {
+                sl.OnClientError();
+            });
 
             hasConnection = false;
             LOGGER.log(Level.SEVERE, null, ex);
@@ -94,15 +121,16 @@ public class Client implements Runnable {
         } catch (IOException e) {
             LOGGER.log(Level.SEVERE, null, e);
         }
-
+        listeners.stream().forEach((sl) -> {
+            sl.OnClientDisconnected();
+        });
         hasConnection = false;
     }
-    
-    private boolean RunnablesHaveStopped()
-    {
+
+    private boolean RunnablesHaveStopped() {
         //Considered Stopped if we have a connected socket and we have got a non working runnable
-        return ((connectedSocket != null && connectedSocket.isConnected()) &&
-                (!listenRunnable.isRunning() || !sendRunnable.isRunning()));
+        return ((connectedSocket != null && connectedSocket.isConnected())
+                && (!listenRunnable.isRunning() || !sendRunnable.isRunning()));
     }
 
     public void Stop() {
@@ -125,7 +153,7 @@ public class Client implements Runnable {
      * @param message XML message.
      */
     public void writeMessage(String message) {
-        
+
         //User has no connection
         /*if (!hasConnection) {
             LOGGER.log(Level.INFO, "Client has no connection, setting up connection...");
@@ -142,8 +170,11 @@ public class Client implements Runnable {
                 LOGGER.log(Level.SEVERE, null, ex);
             }
         }*/
-
         sendRunnable.writeMessage(message);
+
+        listeners.stream().forEach((sl) -> {
+            sl.OnClientSentMessage();
+        });
     }
 
     public boolean isRunning() {
