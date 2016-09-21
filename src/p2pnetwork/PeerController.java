@@ -1,5 +1,6 @@
 package p2pnetwork;
 
+import Util.ApplicationSettings;
 import communication.Server;
 import communication.Client;
 import java.util.logging.Level;
@@ -14,6 +15,9 @@ public class PeerController {
     private static final Logger LOGGER = Logger.getLogger(PeerController.class.getCanonicalName());
     
     public boolean isRunning;
+    
+    private Server server;
+    private Client client;
 
     public PeerController() {
         isRunning = true;
@@ -21,9 +25,9 @@ public class PeerController {
     
     public void Start()
     {
-        Server server = new Server();
+        server = new Server();
         
-        Client client = new Client();
+        client = new Client();
         
         Thread serverThread = new Thread(server);
         Thread clientThread = new Thread(client);
@@ -40,7 +44,7 @@ public class PeerController {
         
         clientThread.start();
         
-        client.SetupConnection("localhost", 80);
+        client.SetupConnection("localhost", ApplicationSettings.SERVERPORT);
         client.writeMessage("HELLO!");
         
         server.writeMessage("Oh hai!");
@@ -55,6 +59,14 @@ public class PeerController {
     private void Update()
     {
         
+    }
+    
+    private void Stop()
+    {
+        client.Stop();
+        server.Stop();
+        
+        isRunning = false;
     }
     
 }
