@@ -2,6 +2,7 @@ package communication;
 
 import Interfaces.ICommunicationListener;
 import Util.Constants;
+import Util.MessageParser;
 import communication.messages.Message;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -144,13 +145,8 @@ public class Server implements Runnable {
                 && (!listenRunnable.isRunning() || !sendRunnable.isRunning()));
     }
 
-    /**
-     * Fetches the latest message from the listener.
-     *
-     * @return XML message.
-     */
-    public String getMessage() {
-        return listenRunnable.getMessage();
+    public Message getMessage() {
+        return MessageParser.DecodeJSON(listenRunnable.getRawMessage());
     }
 
     /**

@@ -98,7 +98,7 @@ public class PeerController implements ICommunicationListener {
     @Override
     public void OnClientRecievedMessage() {
 
-        Message recievedMsg = MessageParser.DecodeJSON(client.getMessage());
+        Message recievedMsg = client.getMessage();
 
         LOGGER.log(Level.INFO, "Client recieved message = {0}", recievedMsg.getMsg());
     }
@@ -126,7 +126,7 @@ public class PeerController implements ICommunicationListener {
     @Override
     public void OnServerRecievedMessage() {
 
-        Message recievedMsg = MessageParser.DecodeJSON(server.getMessage());
+        Message recievedMsg = server.getMessage();
 
         LOGGER.log(Level.INFO, "Server recieved message = {0}", recievedMsg.getMsg());
     }

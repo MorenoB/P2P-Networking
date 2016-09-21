@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import Interfaces.ICommunicationListener;
+import Util.MessageParser;
 import communication.messages.Message;
 import org.json.JSONObject;
 
@@ -140,13 +141,8 @@ public class Client implements Runnable {
         running = false;
     }
 
-    /**
-     * Fetches the latest message from the listener.
-     *
-     * @return XML message.
-     */
-    public String getMessage() {
-        return listenRunnable.getMessage();
+    public Message getMessage() {
+        return MessageParser.DecodeJSON(listenRunnable.getRawMessage());
     }
 
     /**

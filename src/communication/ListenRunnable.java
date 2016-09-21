@@ -77,7 +77,7 @@ class ListenRunnable implements Runnable {
         running = false;
     }
 
-    public String getMessage() {
+    public String getRawMessage() {
         return queue.poll();
     }
 
