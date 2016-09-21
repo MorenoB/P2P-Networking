@@ -1,6 +1,6 @@
 package communication;
 
-import Util.ApplicationSettings;
+import Util.Constants;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -46,7 +46,7 @@ public class Client implements Runnable {
                 StopConnection();
             }*/
             try {
-                Thread.sleep(ApplicationSettings.CYCLEWAIT);
+                Thread.sleep(Constants.CYCLEWAIT);
             } catch (InterruptedException ex) {
                 LOGGER.log(Level.SEVERE, null, ex);
             }
@@ -156,7 +156,7 @@ public class Client implements Runnable {
      */
     public void writeMessage(String message) {
 
-        Message helloMsg = new Message(Message.MESSAGE);
+        Message helloMsg = new Message(Constants.MSG_MESSAGE);
         helloMsg.setMsg(message);
 
         JSONObject jsonObj = new JSONObject(helloMsg);

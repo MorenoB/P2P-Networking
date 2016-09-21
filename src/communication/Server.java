@@ -1,7 +1,7 @@
 package communication;
 
 import Interfaces.ICommunicationListener;
-import Util.ApplicationSettings;
+import Util.Constants;
 import communication.messages.Message;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -51,7 +51,7 @@ public class Server implements Runnable {
                 StopConnection();
             }*/
             try {
-                Thread.sleep(ApplicationSettings.CYCLEWAIT);
+                Thread.sleep(Constants.CYCLEWAIT);
             } catch (InterruptedException ex) {
                 LOGGER.log(Level.SEVERE, null, ex);
             }
@@ -74,7 +74,7 @@ public class Server implements Runnable {
         try {
             isWaitingForConnection = true;
 
-            ServerSocket server = new ServerSocket(ApplicationSettings.SERVERPORT);
+            ServerSocket server = new ServerSocket(Constants.SERVERPORT);
 
             listeners.stream().forEach((sl) -> {
                 sl.OnServerStarted();
@@ -160,7 +160,7 @@ public class Server implements Runnable {
      */
     public void writeMessage(String message) {
 
-        Message helloMsg = new Message(Message.MESSAGE);
+        Message helloMsg = new Message(Constants.MSG_QUIT);
         helloMsg.setMsg(message);
 
         JSONObject jsonObj = new JSONObject(helloMsg);

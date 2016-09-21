@@ -1,7 +1,7 @@
 package p2pnetwork;
 
 import Interfaces.ICommunicationListener;
-import Util.ApplicationSettings;
+import Util.Constants;
 import Util.MessageParser;
 import communication.Server;
 import communication.Client;
@@ -48,7 +48,7 @@ public class PeerController implements ICommunicationListener {
 
         clientThread.start();
 
-        client.SetupConnection("localhost", ApplicationSettings.SERVERPORT);
+        client.SetupConnection("localhost", Constants.SERVERPORT);
 
         client.writeMessage("Hello!");
         

@@ -2,9 +2,6 @@ package communication.messages;
 
 public class Message {
 
-    public static final int QUIT = 1;
-    public static final int MESSAGE = 2;
-
     private static int counter = 0;
     private final int messageType;
     private final int id;

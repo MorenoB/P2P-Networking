@@ -1,7 +1,7 @@
 package communication;
 
 import Interfaces.ICommunicationListener;
-import Util.ApplicationSettings;
+import Util.Constants;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,7 +37,7 @@ class SendRunnable implements Runnable {
             outputLine = queue.poll();
             if (outputLine == null) {
                 try {
-                    Thread.sleep(ApplicationSettings.CYCLEWAIT);
+                    Thread.sleep(Constants.CYCLEWAIT);
                 } catch (Throwable e) {
                     LOGGER.log(Level.SEVERE, name, e);
                 }
