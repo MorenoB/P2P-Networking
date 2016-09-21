@@ -1,20 +1,28 @@
 package communication;
 
-import Util.ApplicationSettings;
+import Interfaces.ICommunicationListener;
+import Util.Constants;
+import Util.MessageParser;
+import communication.messages.Message;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.json.JSONObject;
 
 /**
  *
  * @author Moreno
  */
 public class Server implements Runnable {
+
+    private final List<ICommunicationListener> listeners = new ArrayList<>();
 
     private Socket connectedSocket;
 
@@ -37,35 +45,56 @@ public class Server implements Runnable {
             if (!isWaitingForConnection) {
                 ListenForConnection();
             }
-            
+
             /*if(RunnablesHaveStopped())
             {
                 LOGGER.log(Level.SEVERE, "ListenRunnable/SendRunnable stopped running! Shutting down connection...");
                 StopConnection();
             }*/
-
             try {
-                Thread.sleep(ApplicationSettings.CYCLEWAIT);
+                Thread.sleep(Constants.CYCLEWAIT);
             } catch (InterruptedException ex) {
                 LOGGER.log(Level.SEVERE, null, ex);
             }
         }
     }
 
+    public void AddListener(ICommunicationListener toAdd) {
+        listeners.add(toAdd);
+
+        if (listenRunnable != null) {
+            listenRunnable.AddListener(toAdd);
+        }
+
+        if (sendRunnable != null) {
+            sendRunnable.AddListener(toAdd);
+        }
+    }
+
     private void ListenForConnection() {
         try {
             isWaitingForConnection = true;
-            
-            ServerSocket server = new ServerSocket(ApplicationSettings.SERVERPORT);
 
+            ServerSocket server = new ServerSocket(Constants.SERVERPORT);
+
+            listeners.stream().forEach((sl) -> {
+                sl.OnServerStarted();
+            });
             LOGGER.log(Level.INFO, "Waiting for client");
-            
+
             connectedSocket = server.accept();
+
+            listeners.stream().forEach((sl) -> {
+                sl.OnServerAcceptedConnection();
+            });
 
             LOGGER.log(Level.INFO, "Accepted connection {0}", server.getInetAddress().toString());
 
             listenRunnable = new ListenRunnable("SERVER", new BufferedReader(new InputStreamReader(connectedSocket.getInputStream())));
             sendRunnable = new SendRunnable("SERVER", new PrintWriter(connectedSocket.getOutputStream(), true));
+
+            listenRunnable.UpdateListeners(listeners);
+            sendRunnable.UpdateListeners(listeners);
 
             Thread listenThread = new Thread(listenRunnable);
             Thread sendThread = new Thread(sendRunnable);
@@ -74,6 +103,9 @@ public class Server implements Runnable {
             sendThread.start();
 
         } catch (IOException ex) {
+            listeners.stream().forEach((sl) -> {
+                sl.OnServerError();
+            });
             StopConnection();
             LOGGER.log(Level.SEVERE, null, ex);
         }
@@ -106,21 +138,15 @@ public class Server implements Runnable {
         StopConnection();
         running = false;
     }
-    
-    private boolean RunnablesHaveStopped()
-    {
+
+    private boolean RunnablesHaveStopped() {
         //Considered Stopped if we have a connected socket and we have got a non working runnable
-        return ((connectedSocket != null && connectedSocket.isConnected()) &&
-                (!listenRunnable.isRunning() || !sendRunnable.isRunning()));
+        return ((connectedSocket != null && connectedSocket.isConnected())
+                && (!listenRunnable.isRunning() || !sendRunnable.isRunning()));
     }
 
-    /**
-     * Fetches the latest message from the listener.
-     *
-     * @return XML message.
-     */
-    public String getMessage() {
-        return listenRunnable.getMessage();
+    public Message getMessage() {
+        return MessageParser.DecodeJSON(listenRunnable.getRawMessage());
     }
 
     /**
@@ -129,7 +155,13 @@ public class Server implements Runnable {
      * @param message XML message.
      */
     public void writeMessage(String message) {
-        sendRunnable.writeMessage("<Controller>" + message + "</Controller>");
+
+        Message helloMsg = new Message(Constants.MSG_QUIT);
+        helloMsg.setMsg(message);
+
+        JSONObject jsonObj = new JSONObject(helloMsg);
+
+        sendRunnable.writeMessage(jsonObj.toString());
     }
 
     public boolean isRunning() {

@@ -1,7 +1,10 @@
 package communication;
 
-import Util.ApplicationSettings;
+import Interfaces.ICommunicationListener;
+import Util.Constants;
 import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -11,6 +14,7 @@ import java.util.logging.Logger;
  */
 class SendRunnable implements Runnable {
 
+    private List<ICommunicationListener> listeners = new ArrayList<>();
     private final PrintWriter out;
     private final ConcurrentLinkedQueue<String> queue;
     private boolean running;
@@ -33,17 +37,34 @@ class SendRunnable implements Runnable {
             outputLine = queue.poll();
             if (outputLine == null) {
                 try {
-                    Thread.sleep(ApplicationSettings.CYCLEWAIT);
+                    Thread.sleep(Constants.CYCLEWAIT);
                 } catch (Throwable e) {
                     LOGGER.log(Level.SEVERE, name, e);
                 }
             } else {
-                // Send outputLine to client
+                // Send outputLine
                 out.println(outputLine);
 
+                if ("SERVER".equals(name)) {
+                    listeners.stream().forEach((listener) -> {
+                        listener.OnServerSentMessage();
+                    });
+                } else {
+                    listeners.stream().forEach((listener) -> {
+                        listener.OnClientSentMessage();
+                    });
+                }
                 LOGGER.log(Level.INFO, name + " sent {0}", outputLine);
             }
         }
+    }
+
+    public void UpdateListeners(List<ICommunicationListener> newListeners) {
+        listeners = newListeners;
+    }
+
+    public void AddListener(ICommunicationListener listener) {
+        listeners.add(listener);
     }
 
     public void stop() {
@@ -54,9 +75,8 @@ class SendRunnable implements Runnable {
     public void writeMessage(String message) {
         queue.add(message);
     }
-    
-    public boolean isRunning()
-    {
+
+    public boolean isRunning() {
         return running;
     }
 }
