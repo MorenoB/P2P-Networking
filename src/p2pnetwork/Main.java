@@ -10,18 +10,31 @@ import java.util.logging.Logger;
 public class Main {
 
     private static final Logger LOGGER = Logger.getLogger(Main.class.getCanonicalName());
-    
+
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        
-        LOGGER.log(Level.INFO, "Starting up application...");
-        
-        PeerController controller = new PeerController();
-        
-        
+
+        if (args.length < 1) {
+            LOGGER.log(Level.WARNING, "Usage: java -jar P2PNetwork { ID }");
+            return;
+        }
+
+        byte id = -1;
+
+        try {
+            id = Byte.parseByte(args[0]);
+        } catch (NumberFormatException e) {
+            LOGGER.log(Level.WARNING, "Usage: java -jar P2PNetwork { ID }");
+            return;
+        }
+
+        LOGGER.log(Level.INFO, "Starting up P2P application...");
+
+        PeerController controller = new PeerController(id);
+
         controller.Start();
     }
-    
+
 }

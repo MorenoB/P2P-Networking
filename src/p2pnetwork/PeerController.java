@@ -2,7 +2,6 @@ package p2pnetwork;
 
 import Interfaces.ICommunicationListener;
 import Util.Constants;
-import Util.MessageParser;
 import communication.Server;
 import communication.Client;
 import java.util.logging.Level;
@@ -21,9 +20,13 @@ public class PeerController implements ICommunicationListener {
 
     private Server server;
     private Client client;
+    
+    private byte peerID;
 
-    public PeerController() {
+    public PeerController(byte peerID) {
         isRunning = true;
+        
+        this.peerID = peerID;
     }
 
     public void Start() {
@@ -58,7 +61,12 @@ public class PeerController implements ICommunicationListener {
             Update();
         }
     }
-
+    
+    private void SetID(byte newId)
+    {
+        peerID = newId;
+    }
+    
     private void Update() {
 
     }
