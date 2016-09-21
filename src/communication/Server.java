@@ -2,6 +2,7 @@ package communication;
 
 import Interfaces.ICommunicationListener;
 import Util.ApplicationSettings;
+import communication.messages.Message;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -12,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.json.JSONObject;
 
 /**
  *
@@ -157,7 +159,13 @@ public class Server implements Runnable {
      * @param message XML message.
      */
     public void writeMessage(String message) {
-        sendRunnable.writeMessage(message);
+
+        Message helloMsg = new Message(Message.MESSAGE);
+        helloMsg.setMsg(message);
+
+        JSONObject jsonObj = new JSONObject(helloMsg);
+
+        sendRunnable.writeMessage(jsonObj.toString());
     }
 
     public boolean isRunning() {

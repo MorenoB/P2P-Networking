@@ -7,7 +7,6 @@ import communication.Server;
 import communication.Client;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.json.JSONObject;
 import communication.messages.Message;
 
 /**
@@ -38,7 +37,6 @@ public class PeerController implements ICommunicationListener {
         Thread serverThread = new Thread(server);
         Thread clientThread = new Thread(client);
 
-        //JSONWriter.parse(context, s, s, isRunning)
         //Start Threads
         serverThread.start();
 
@@ -52,14 +50,10 @@ public class PeerController implements ICommunicationListener {
 
         client.SetupConnection("localhost", ApplicationSettings.SERVERPORT);
 
-        Message helloMsg = new Message(Message.MESSAGE);
-        helloMsg.setMsg("HELLO FROM MESSAGE!");
+        client.writeMessage("Hello!");
+        
+        server.writeMessage("Also testing!");
 
-        JSONObject jsonObj = new JSONObject(helloMsg);
-
-        client.writeMessage(jsonObj.toString());
-
-        //server.writeMessage("Oh hai!");
         while (isRunning) {
             Update();
         }
@@ -103,7 +97,10 @@ public class PeerController implements ICommunicationListener {
 
     @Override
     public void OnClientRecievedMessage() {
-        LOGGER.log(Level.INFO, "Client has recieved a message!");
+
+        Message recievedMsg = MessageParser.DecodeJSON(client.getMessage());
+
+        LOGGER.log(Level.INFO, "Client recieved message = {0}", recievedMsg.getMsg());
     }
 
     @Override
@@ -128,12 +125,10 @@ public class PeerController implements ICommunicationListener {
 
     @Override
     public void OnServerRecievedMessage() {
-        LOGGER.log(Level.INFO, "Server has recieved a message!");
 
-        JSONObject jsonObj = new JSONObject(server.getMessage());
-        Message recievedMsg = MessageParser.DecodeJSON(jsonObj);
+        Message recievedMsg = MessageParser.DecodeJSON(server.getMessage());
 
-        LOGGER.log(Level.INFO, "Decoded message = {0}", recievedMsg.getMsg());
+        LOGGER.log(Level.INFO, "Server recieved message = {0}", recievedMsg.getMsg());
     }
 
 }

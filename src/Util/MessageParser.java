@@ -9,7 +9,10 @@ import org.json.JSONObject;
  */
 public final class MessageParser {
 
-    public static Message DecodeJSON(JSONObject jsonObj) {
+    public static Message DecodeJSON(String rawJson) {
+        
+        JSONObject jsonObj = new JSONObject(rawJson);
+        
         String msg = jsonObj.getString("msg");
         int messageType = jsonObj.getInt("messageType");
         int messageId = jsonObj.getInt("id");

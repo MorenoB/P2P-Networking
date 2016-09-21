@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import Interfaces.ICommunicationListener;
+import communication.messages.Message;
+import org.json.JSONObject;
 
 /**
  *
@@ -53,11 +55,11 @@ public class Client implements Runnable {
 
     public void AddListener(ICommunicationListener toAdd) {
         listeners.add(toAdd);
-        
+
         if (listenRunnable != null) {
             listenRunnable.AddListener(toAdd);
         }
-        
+
         if (sendRunnable != null) {
             sendRunnable.AddListener(toAdd);
         }
@@ -80,10 +82,10 @@ public class Client implements Runnable {
 
             listenRunnable = new ListenRunnable("CLIENT", new BufferedReader(new InputStreamReader(connectedSocket.getInputStream())));
             sendRunnable = new SendRunnable("CLIENT", new PrintWriter(connectedSocket.getOutputStream(), true));
-            
+
             listenRunnable.UpdateListeners(listeners);
             sendRunnable.UpdateListeners(listeners);
-            
+
             Thread listenThread = new Thread(listenRunnable);
             Thread sendThread = new Thread(sendRunnable);
 
@@ -154,23 +156,12 @@ public class Client implements Runnable {
      */
     public void writeMessage(String message) {
 
-        //User has no connection
-        /*if (!hasConnection) {
-            LOGGER.log(Level.INFO, "Client has no connection, setting up connection...");
-            SetupConnection(host, port);
-        }
+        Message helloMsg = new Message(Message.MESSAGE);
+        helloMsg.setMsg(message);
 
-        //User has connection to wrong host.
-        if (hasConnection && !connectedSocket.getInetAddress().getHostAddress().equals(host)) {
-            try {
-                LOGGER.log(Level.INFO, "Client connected to wrong host, re setting up correct connection...");
-                connectedSocket.close();
-                SetupConnection(host, port);
-            } catch (IOException ex) {
-                LOGGER.log(Level.SEVERE, null, ex);
-            }
-        }*/
-        sendRunnable.writeMessage(message);
+        JSONObject jsonObj = new JSONObject(helloMsg);
+
+        sendRunnable.writeMessage(jsonObj.toString());
 
         listeners.stream().forEach((sl) -> {
             sl.OnClientSentMessage();
