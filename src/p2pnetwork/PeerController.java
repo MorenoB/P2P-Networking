@@ -43,6 +43,8 @@ public class PeerController {
         client.SetupConnection("localhost", 80);
         client.writeMessage("HELLO!");
         
+        server.writeMessage("Oh hai!");
+        
         while(isRunning)
         {
             Update();
