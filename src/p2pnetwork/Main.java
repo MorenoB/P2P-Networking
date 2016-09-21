@@ -1,7 +1,5 @@
 package p2pnetwork;
 
-import communication.Server;
-import communication.Client;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 

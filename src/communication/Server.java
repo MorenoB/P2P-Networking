@@ -38,11 +38,11 @@ public class Server implements Runnable {
                 ListenForConnection();
             }
             
-            if(!listenRunnable.isRunning() || !sendRunnable.isRunning())
+            /*if(RunnablesHaveStopped())
             {
                 LOGGER.log(Level.SEVERE, "ListenRunnable/SendRunnable stopped running! Shutting down connection...");
                 StopConnection();
-            }
+            }*/
 
             try {
                 Thread.sleep(ApplicationSettings.CYCLEWAIT);
@@ -105,6 +105,13 @@ public class Server implements Runnable {
     public void Stop() {
         StopConnection();
         running = false;
+    }
+    
+    private boolean RunnablesHaveStopped()
+    {
+        //Considered Stopped if we have a connected socket and we have got a non working runnable
+        return ((connectedSocket != null && connectedSocket.isConnected()) &&
+                (!listenRunnable.isRunning() || !sendRunnable.isRunning()));
     }
 
     /**
