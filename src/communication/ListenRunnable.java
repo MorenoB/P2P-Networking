@@ -41,6 +41,11 @@ class ListenRunnable implements Runnable {
                     break;
                 }
 
+                LOGGER.log(Level.INFO, name + " Recieved {0}", inputLine);
+
+                // Write to queue
+                queue.add(inputLine);
+
                 if ("SERVER".equals(name)) {
                     listeners.stream().forEach((listener) -> {
                         listener.OnServerRecievedMessage();
@@ -50,15 +55,6 @@ class ListenRunnable implements Runnable {
                         listener.OnClientRecievedMessage();
                     });
                 }
-
-                LOGGER.log(Level.INFO, name + " Recieved {0}", inputLine);
-
-                if (inputLine.equals("quit")) {
-                    stop();
-                }
-
-                // Write to queue
-                queue.add(inputLine);
             }
         } catch (IOException e) {
 
