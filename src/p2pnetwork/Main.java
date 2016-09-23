@@ -34,7 +34,7 @@ public class Main {
 
         LOGGER.log(Level.INFO, "Starting up P2P application...");
 
-        PeerController controller = new PeerController(id);
+        Peer controller = new Peer(id);
 
         controller.Start();
     }

@@ -10,6 +10,8 @@ public final class Constants {
     
     public static final int SERVERPORT = 1222;
     
+    public static final byte DISCONNECTED_PEERID = -1;
+    
     
     //Message types
     public static final int MSG_QUIT = 1;

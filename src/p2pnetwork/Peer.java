@@ -13,9 +13,9 @@ import communication.messages.Message;
  *
  * @author Moreno
  */
-public class PeerController implements ICommunicationListener {
+public class Peer implements ICommunicationListener {
 
-    private static final Logger LOGGER = Logger.getLogger(PeerController.class.getCanonicalName());
+    private static final Logger LOGGER = Logger.getLogger(Peer.class.getCanonicalName());
 
     public boolean isRunning;
 
@@ -24,8 +24,11 @@ public class PeerController implements ICommunicationListener {
 
     private byte peerID;
 
-    public PeerController(byte peerID) {
+    public Peer(byte peerID) {
         isRunning = true;
+        
+        //Peers that have peerid set to -1 are considered disconnected from the peer network.
+        peerID = Constants.DISCONNECTED_PEERID;
 
         this.peerID = peerID;
     }
@@ -81,6 +84,23 @@ public class PeerController implements ICommunicationListener {
 
         isRunning = false;
     }
+    
+    private void JoinNetworkWithPeerId(byte peerId)
+    {
+        //When peers join a network, they are getting a peer id
+        SetID(peerID);
+        
+        LOGGER.log(Level.INFO, "Peer id set to {0}", peerID);
+    }
+    
+    private void DisconnectFromNetwork()
+    {
+        //When peers join a network, they are getting a peer id
+        SetID(Constants.DISCONNECTED_PEERID);
+        
+        LOGGER.log(Level.INFO, "Peer is disconnected! Peer id set to {0}", Constants.DISCONNECTED_PEERID);
+        
+    }
 
     @Override
     public void OnClientStarted() {
@@ -116,12 +136,20 @@ public class PeerController implements ICommunicationListener {
             case Constants.MSG_MESSAGE:
                 LOGGER.log(Level.INFO, "Client recieved message = {0}", recievedMsg.getMsg());
                 break;
+                
             case Constants.MSG_IPADDRESS:
                 LOGGER.log(Level.INFO, "Client recieved ip adress = {0}", recievedMsg.getMsg());
                 break;
+                
             case Constants.MSG_PEERID:
-                LOGGER.log(Level.INFO, "Client recieved peer id = {0}", recievedMsg.getMsg());
+                
+                String recievedString = recievedMsg.getMsg();
+                Byte recievedId = Byte.parseByte(recievedString);
+                JoinNetworkWithPeerId(recievedId);
+                        
+                LOGGER.log(Level.INFO, "Client recieved peer id = {0}", recievedString);
                 break;
+                
             case Constants.MSG_QUIT:
                 LOGGER.log(Level.SEVERE, "Client recieved quit command!");
                 Stop();
