@@ -65,6 +65,11 @@ public class Client implements Runnable {
             sendRunnable.AddListener(toAdd);
         }
     }
+    
+    public boolean HasConnection()
+    {
+        return hasConnection;
+    }
 
     public void SetupConnection(String host, int port) {
         if (hasConnection) {

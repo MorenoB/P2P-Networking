@@ -22,6 +22,7 @@ public class Peer implements ICommunicationListener {
     private Server server;
     private Client client;
 
+    private boolean sentPeerRequest;
     private byte peerID;
 
     public Peer(byte peerID) {
@@ -61,10 +62,6 @@ public class Peer implements ICommunicationListener {
             //
         }
 
-        client.writeMessage("Hello!");
-
-        server.writeMessage("Also testing!");
-
         while (isRunning) {
             Update();
         }
@@ -75,7 +72,12 @@ public class Peer implements ICommunicationListener {
     }
 
     private void Update() {
-
+        
+        if(!client.HasConnection())
+            return;
+        
+        if(isDisconnectedFromNetwork() && !sentPeerRequest)
+            RequestPeerId();
     }
 
     private void Stop() {
@@ -99,7 +101,19 @@ public class Peer implements ICommunicationListener {
         SetID(Constants.DISCONNECTED_PEERID);
         
         LOGGER.log(Level.INFO, "Peer is disconnected! Peer id set to {0}", Constants.DISCONNECTED_PEERID);
-        
+        sentPeerRequest = false;
+    }
+    
+    private void RequestPeerId()
+    {
+        Message peerRequestMessage = MessageParser.CreatePeerIDRequest();
+        client.writeMessage(peerRequestMessage);
+        sentPeerRequest = true;
+    }
+    
+    private boolean isDisconnectedFromNetwork()
+    {
+        return peerID == Constants.DISCONNECTED_PEERID;
     }
 
     @Override
@@ -165,8 +179,6 @@ public class Peer implements ICommunicationListener {
     @Override
     public void OnServerAcceptedConnection() {
         LOGGER.log(Level.INFO, "Server has accepted incoming connection!");
-
-        server.writeMessage(MessageParser.CreatePeerIDMessage(peerID));
     }
 
     @Override
@@ -186,17 +198,21 @@ public class Peer implements ICommunicationListener {
 
         switch (recievedMsg.getMessageType()) {
             case Constants.MSG_MESSAGE:
-                LOGGER.log(Level.INFO, "Server recieved message = {0}", recievedMsg.getMsg());
+                //LOGGER.log(Level.INFO, "Server recieved message = {0}", recievedMsg.getMsg());
                 break;
             case Constants.MSG_IPADDRESS:
-                LOGGER.log(Level.INFO, "Server recieved ip adress = {0}", recievedMsg.getMsg());
+                //LOGGER.log(Level.INFO, "Server recieved ip adress = {0}", recievedMsg.getMsg());
                 break;
             case Constants.MSG_PEERID:
-                LOGGER.log(Level.INFO, "Server recieved peer id = {0}", recievedMsg.getMsg());
+                //LOGGER.log(Level.INFO, "Server recieved peer id = {0}", recievedMsg.getMsg());
                 break;
             case Constants.MSG_QUIT:
                 LOGGER.log(Level.SEVERE, "Server recieved quit command!");
                 Stop();
+                
+            case Constants.MSG_REQUEST_PEERID:
+                server.writeMessage(MessageParser.CreatePeerIDMessage(peerID));
+                
                 break;
         }
     }

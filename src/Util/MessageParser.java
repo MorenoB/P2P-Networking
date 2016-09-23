@@ -31,4 +31,13 @@ public final class MessageParser {
         
         return message;
     }
+    
+    public static Message CreatePeerIDRequest()
+    {
+        Message message = new Message(Constants.MSG_REQUEST_PEERID);
+        
+        message.setMsg("IHRE PEER ID BITTE!");
+        
+        return message;
+    }
 }
