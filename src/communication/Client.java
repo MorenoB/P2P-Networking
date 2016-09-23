@@ -145,6 +145,10 @@ public class Client implements Runnable {
         return MessageParser.DecodeJSON(listenRunnable.getRawMessage());
     }
 
+    public boolean isReady() {
+        return isRunning() && !RunnablesHaveStopped();
+    }
+
     /**
      * Writes a message to the sender buffer.
      *
@@ -152,10 +156,21 @@ public class Client implements Runnable {
      */
     public void writeMessage(String message) {
 
-        Message helloMsg = new Message(Constants.MSG_MESSAGE);
-        helloMsg.setMsg(message);
+        Message msgMessage = new Message(Constants.MSG_MESSAGE);
+        msgMessage.setMsg(message);
 
-        JSONObject jsonObj = new JSONObject(helloMsg);
+        JSONObject jsonObj = new JSONObject(msgMessage);
+
+        sendRunnable.writeMessage(jsonObj.toString());
+
+        listeners.stream().forEach((sl) -> {
+            sl.OnClientSentMessage();
+        });
+    }
+
+    public void writeMessage(Message message) {
+
+        JSONObject jsonObj = new JSONObject(message);
 
         sendRunnable.writeMessage(jsonObj.toString());
 

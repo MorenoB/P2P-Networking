@@ -22,4 +22,13 @@ public final class MessageParser {
 
         return message;
     }
+    
+    public static Message CreatePeerIDMessage(byte peerId)
+    {
+        Message message = new Message(Constants.MSG_PEERID);
+        
+        message.setMsg(Byte.toString(peerId));
+        
+        return message;
+    }
 }

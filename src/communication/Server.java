@@ -84,10 +84,6 @@ public class Server implements Runnable {
 
             connectedSocket = server.accept();
 
-            listeners.stream().forEach((sl) -> {
-                sl.OnServerAcceptedConnection();
-            });
-
             LOGGER.log(Level.INFO, "Accepted connection {0}", server.getInetAddress().toString());
 
             listenRunnable = new ListenRunnable("SERVER", new BufferedReader(new InputStreamReader(connectedSocket.getInputStream())));
@@ -101,6 +97,10 @@ public class Server implements Runnable {
 
             listenThread.start();
             sendThread.start();
+
+            listeners.stream().forEach((sl) -> {
+                sl.OnServerAcceptedConnection();
+            });
 
         } catch (IOException ex) {
             listeners.stream().forEach((sl) -> {
@@ -156,10 +156,31 @@ public class Server implements Runnable {
      */
     public void writeMessage(String message) {
 
-        Message helloMsg = new Message(Constants.MSG_QUIT);
-        helloMsg.setMsg(message);
+        Message msgMessage = new Message(Constants.MSG_MESSAGE);
+        msgMessage.setMsg(message);
 
-        JSONObject jsonObj = new JSONObject(helloMsg);
+        JSONObject jsonObj = new JSONObject(msgMessage);
+
+        if (sendRunnable == null) {
+            LOGGER.log(Level.SEVERE, "Sendrunnable is null for msg {0}", message);
+            return;
+        }
+
+        sendRunnable.writeMessage(jsonObj.toString());
+    }
+
+    public boolean isReady() {
+        return isRunning() && !RunnablesHaveStopped();
+    }
+
+    public void writeMessage(Message message) {
+
+        JSONObject jsonObj = new JSONObject(message);
+
+        if (sendRunnable == null) {
+            LOGGER.log(Level.SEVERE, "Sendrunnable is null for msg {0}", message.getMsg());
+            return;
+        }
 
         sendRunnable.writeMessage(jsonObj.toString());
     }

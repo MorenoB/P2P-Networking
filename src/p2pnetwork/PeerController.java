@@ -2,6 +2,7 @@ package p2pnetwork;
 
 import Interfaces.ICommunicationListener;
 import Util.Constants;
+import Util.MessageParser;
 import communication.Server;
 import communication.Client;
 import java.util.logging.Level;
@@ -20,12 +21,12 @@ public class PeerController implements ICommunicationListener {
 
     private Server server;
     private Client client;
-    
+
     private byte peerID;
 
     public PeerController(byte peerID) {
         isRunning = true;
-        
+
         this.peerID = peerID;
     }
 
@@ -53,20 +54,23 @@ public class PeerController implements ICommunicationListener {
 
         client.SetupConnection("localhost", Constants.SERVERPORT);
 
+        while (!client.isReady() || !server.isReady()) {
+            //
+        }
+
         client.writeMessage("Hello!");
-        
+
         server.writeMessage("Also testing!");
 
         while (isRunning) {
             Update();
         }
     }
-    
-    private void SetID(byte newId)
-    {
+
+    private void SetID(byte newId) {
         peerID = newId;
     }
-    
+
     private void Update() {
 
     }
@@ -108,7 +112,21 @@ public class PeerController implements ICommunicationListener {
 
         Message recievedMsg = client.getMessage();
 
-        LOGGER.log(Level.INFO, "Client recieved message = {0}", recievedMsg.getMsg());
+        switch (recievedMsg.getMessageType()) {
+            case Constants.MSG_MESSAGE:
+                LOGGER.log(Level.INFO, "Client recieved message = {0}", recievedMsg.getMsg());
+                break;
+            case Constants.MSG_IPADDRESS:
+                LOGGER.log(Level.INFO, "Client recieved ip adress = {0}", recievedMsg.getMsg());
+                break;
+            case Constants.MSG_PEERID:
+                LOGGER.log(Level.INFO, "Client recieved peer id = {0}", recievedMsg.getMsg());
+                break;
+            case Constants.MSG_QUIT:
+                LOGGER.log(Level.SEVERE, "Client recieved quit command!");
+                Stop();
+                break;
+        }
     }
 
     @Override
@@ -119,6 +137,8 @@ public class PeerController implements ICommunicationListener {
     @Override
     public void OnServerAcceptedConnection() {
         LOGGER.log(Level.INFO, "Server has accepted incoming connection!");
+
+        server.writeMessage(MessageParser.CreatePeerIDMessage(peerID));
     }
 
     @Override
@@ -136,7 +156,21 @@ public class PeerController implements ICommunicationListener {
 
         Message recievedMsg = server.getMessage();
 
-        LOGGER.log(Level.INFO, "Server recieved message = {0}", recievedMsg.getMsg());
+        switch (recievedMsg.getMessageType()) {
+            case Constants.MSG_MESSAGE:
+                LOGGER.log(Level.INFO, "Server recieved message = {0}", recievedMsg.getMsg());
+                break;
+            case Constants.MSG_IPADDRESS:
+                LOGGER.log(Level.INFO, "Server recieved ip adress = {0}", recievedMsg.getMsg());
+                break;
+            case Constants.MSG_PEERID:
+                LOGGER.log(Level.INFO, "Server recieved peer id = {0}", recievedMsg.getMsg());
+                break;
+            case Constants.MSG_QUIT:
+                LOGGER.log(Level.SEVERE, "Server recieved quit command!");
+                Stop();
+                break;
+        }
     }
 
 }

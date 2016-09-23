@@ -16,6 +16,8 @@ public class Main {
      */
     public static void main(String[] args) {
 
+        byte id = 1;
+        /*
         if (args.length < 1) {
             LOGGER.log(Level.WARNING, "Usage: java -jar P2PNetwork { ID }");
             return;
@@ -28,7 +30,7 @@ public class Main {
         } catch (NumberFormatException e) {
             LOGGER.log(Level.WARNING, "Usage: java -jar P2PNetwork { ID }");
             return;
-        }
+        }*/
 
         LOGGER.log(Level.INFO, "Starting up P2P application...");
 
