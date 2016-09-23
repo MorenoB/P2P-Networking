@@ -37,6 +37,9 @@ public class Main {
         Peer controller = new Peer(id);
 
         controller.Start();
+
+        controller.ConnectToPeer("localhost");
+
     }
 
 }

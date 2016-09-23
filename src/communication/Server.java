@@ -25,14 +25,27 @@ public class Server implements Runnable {
     private final List<ICommunicationListener> listeners = new ArrayList<>();
 
     private Socket connectedSocket;
+    private ServerSocket serverSocket;
 
     private boolean running;
-    private boolean isWaitingForConnection;
 
     private ListenRunnable listenRunnable;
     private SendRunnable sendRunnable;
 
     private static final Logger LOGGER = Logger.getLogger(Server.class.getCanonicalName());
+
+    public Server() {
+
+        try {
+            serverSocket = new ServerSocket(Constants.SERVERPORT);
+        } catch (IOException ex) {
+            LOGGER.log(Level.SEVERE, null, ex);
+        }
+
+        listeners.stream().forEach((sl) -> {
+            sl.OnServerStarted();
+        });
+    }
 
     @Override
     public void run() {
@@ -42,7 +55,8 @@ public class Server implements Runnable {
         running = true;
 
         while (running) {
-            if (!isWaitingForConnection) {
+
+            if (connectedSocket == null || !connectedSocket.isConnected()) {
                 ListenForConnection();
             }
 
@@ -73,18 +87,11 @@ public class Server implements Runnable {
 
     private void ListenForConnection() {
         try {
-            isWaitingForConnection = true;
-
-            ServerSocket server = new ServerSocket(Constants.SERVERPORT);
-
-            listeners.stream().forEach((sl) -> {
-                sl.OnServerStarted();
-            });
             LOGGER.log(Level.INFO, "Waiting for client");
 
-            connectedSocket = server.accept();
+            connectedSocket = serverSocket.accept();
 
-            LOGGER.log(Level.INFO, "Accepted connection {0}", server.getInetAddress().toString());
+            LOGGER.log(Level.INFO, "Accepted connection {0}", serverSocket.getInetAddress().toString());
 
             listenRunnable = new ListenRunnable("SERVER", new BufferedReader(new InputStreamReader(connectedSocket.getInputStream())));
             sendRunnable = new SendRunnable("SERVER", new PrintWriter(connectedSocket.getOutputStream(), true));
@@ -130,8 +137,6 @@ public class Server implements Runnable {
         } catch (IOException e) {
             LOGGER.log(Level.SEVERE, null, e);
         }
-
-        isWaitingForConnection = false;
     }
 
     public void Stop() {

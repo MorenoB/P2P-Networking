@@ -13,7 +13,7 @@ import communication.messages.Message;
  *
  * @author Moreno
  */
-public class Peer implements ICommunicationListener {
+public class Peer implements ICommunicationListener, Runnable {
 
     private static final Logger LOGGER = Logger.getLogger(Peer.class.getCanonicalName());
 
@@ -27,7 +27,7 @@ public class Peer implements ICommunicationListener {
 
     public Peer(byte peerID) {
         isRunning = true;
-        
+
         //Peers that have peerid set to -1 are considered disconnected from the peer network.
         peerID = Constants.DISCONNECTED_PEERID;
 
@@ -61,10 +61,14 @@ public class Peer implements ICommunicationListener {
         while (!client.isReady() || !server.isReady()) {
             //
         }
+    }
 
-        while (isRunning) {
-            Update();
+    public void ConnectToPeer(String ipAddress) {
+        if (client.HasConnection()) {
+            LOGGER.log(Level.WARNING, "Client already has a connection while setting up a new connection!");
+            client.StopConnection();
         }
+        client.SetupConnection(ipAddress, Constants.SERVERPORT);
     }
 
     private void SetID(byte newId) {
@@ -72,12 +76,14 @@ public class Peer implements ICommunicationListener {
     }
 
     private void Update() {
-        
-        if(!client.HasConnection())
+
+        if (!client.HasConnection()) {
             return;
-        
-        if(isDisconnectedFromNetwork() && !sentPeerRequest)
+        }
+
+        if (isDisconnectedFromNetwork() && !sentPeerRequest) {
             RequestPeerId();
+        }
     }
 
     private void Stop() {
@@ -86,33 +92,29 @@ public class Peer implements ICommunicationListener {
 
         isRunning = false;
     }
-    
-    private void JoinNetworkWithPeerId(byte peerId)
-    {
+
+    private void JoinNetworkWithPeerId(byte peerId) {
         //When peers join a network, they are getting a peer id
         SetID(peerID);
-        
+
         LOGGER.log(Level.INFO, "Peer id set to {0}", peerID);
     }
-    
-    private void DisconnectFromNetwork()
-    {
+
+    private void DisconnectFromNetwork() {
         //When peers join a network, they are getting a peer id
         SetID(Constants.DISCONNECTED_PEERID);
-        
+
         LOGGER.log(Level.INFO, "Peer is disconnected! Peer id set to {0}", Constants.DISCONNECTED_PEERID);
         sentPeerRequest = false;
     }
-    
-    private void RequestPeerId()
-    {
+
+    private void RequestPeerId() {
         Message peerRequestMessage = MessageParser.CreatePeerIDRequest();
         client.writeMessage(peerRequestMessage);
         sentPeerRequest = true;
     }
-    
-    private boolean isDisconnectedFromNetwork()
-    {
+
+    private boolean isDisconnectedFromNetwork() {
         return peerID == Constants.DISCONNECTED_PEERID;
     }
 
@@ -150,20 +152,20 @@ public class Peer implements ICommunicationListener {
             case Constants.MSG_MESSAGE:
                 LOGGER.log(Level.INFO, "Client recieved message = {0}", recievedMsg.getMsg());
                 break;
-                
+
             case Constants.MSG_IPADDRESS:
                 LOGGER.log(Level.INFO, "Client recieved ip adress = {0}", recievedMsg.getMsg());
                 break;
-                
+
             case Constants.MSG_PEERID:
-                
+
                 String recievedString = recievedMsg.getMsg();
                 Byte recievedId = Byte.parseByte(recievedString);
                 JoinNetworkWithPeerId(recievedId);
-                        
+
                 LOGGER.log(Level.INFO, "Client recieved peer id = {0}", recievedString);
                 break;
-                
+
             case Constants.MSG_QUIT:
                 LOGGER.log(Level.SEVERE, "Client recieved quit command!");
                 Stop();
@@ -209,11 +211,19 @@ public class Peer implements ICommunicationListener {
             case Constants.MSG_QUIT:
                 LOGGER.log(Level.SEVERE, "Server recieved quit command!");
                 Stop();
-                
+
             case Constants.MSG_REQUEST_PEERID:
                 server.writeMessage(MessageParser.CreatePeerIDMessage(peerID));
-                
+
                 break;
+        }
+    }
+
+    @Override
+    public void run() {
+
+        while (isRunning) {
+            Update();
         }
     }
 
