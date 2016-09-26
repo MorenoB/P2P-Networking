@@ -1,5 +1,6 @@
 package p2pnetwork;
 
+import Util.Constants;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -16,7 +17,7 @@ public class Main {
      */
     public static void main(String[] args) {
 
-        byte id = 1;
+        byte id = 0;
         /*
         if (args.length < 1) {
             LOGGER.log(Level.WARNING, "Usage: java -jar P2PNetwork { ID }");
@@ -34,11 +35,19 @@ public class Main {
 
         LOGGER.log(Level.INFO, "Starting up P2P application...");
 
-        Peer controller = new Peer(id);
+        
+        
+        Peer peer = new Peer(id);
 
-        controller.Start();
+        Thread peerThread = new Thread(peer);
+        peerThread.start();
+        
+        peer.Start();
+        
+        
+        peer.JoinNetworkWithIP("localhost", Constants.SERVERPORT);
 
-        controller.ConnectToPeer("localhost");
+        //peer.ConnectToPeer("localhost");
 
     }
 
