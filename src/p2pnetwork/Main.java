@@ -38,12 +38,15 @@ public class Main {
         
         
         Peer peer = new Peer(id);
+        
+        peer.setBootPeer(true);
+        peer.Start();
+        
 
         Thread peerThread = new Thread(peer);
         peerThread.start();
         
-        peer.Start();
-        
+
         
         peer.JoinNetworkWithIP("localhost", Constants.SERVERPORT);
 

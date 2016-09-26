@@ -8,8 +8,10 @@ import communication.Client;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import communication.messages.Message;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map.Entry;
 
 /**
@@ -25,23 +27,34 @@ public class Peer implements ICommunicationListener, Runnable {
     private Server server;
     private Client client;
 
-    private boolean sentPeerRequest;
+    private boolean bootPeer;
     private byte peerID;
 
+    private final List<Byte> availablePeerIds;
     private final LinkedHashMap<Byte, String> peerReferences;
 
     public Peer(byte peerID) {
-        isRunning = true;
 
-        //Peers that have peerid set to -1 are considered disconnected from the peer network.
-        peerID = Constants.DISCONNECTED_PEERID;
+        this.availablePeerIds = new ArrayList<>();
+        isRunning = true;
 
         this.peerID = peerID;
 
         peerReferences = new LinkedHashMap<>(4);
+
     }
 
     public void Start() {
+
+        if (bootPeer) {
+            for (byte i = 0; i < Constants.P2PSIZE; i++) {
+                if (i == this.peerID) {
+                    continue;
+                }
+                availablePeerIds.add(i);
+            }
+        }
+
         server = new Server();
 
         client = new Client();
@@ -88,7 +101,8 @@ public class Peer implements ICommunicationListener, Runnable {
         for (int i = 0; i < Constants.INITIAL_HASHMAP_SIZE; i++) {
             otherId = (byte) Math.floorMod((int) (peerID + Math.pow(2, i)), Constants.P2PSIZE);
             peerReferences.put(otherId, "test" + otherId);
-            LOGGER.log(Level.INFO, getPeerreferenceByIndex(i).toString());
+            //LOGGER.log(Level.INFO, getPeerreferenceByIndex(i).toString());
+            LOGGER.log(Level.INFO, "Distance between my ({0}) and other ({1}) = {2}", new Object[]{peerID, getPeerreferenceByIndex(i).getKey(), CalculateDistance(peerID, (byte) getPeerreferenceByIndex(i).getKey())});
         }
     }
 
@@ -155,18 +169,20 @@ public class Peer implements ICommunicationListener, Runnable {
         SetID(Constants.DISCONNECTED_PEERID);
 
         LOGGER.log(Level.INFO, "Peer is disconnected! Peer id set to {0}", Constants.DISCONNECTED_PEERID);
-        sentPeerRequest = false;
     }
 
     private void RequestPeerId() {
         Message peerRequestMessage = MessageParser.CreatePeerIDRequest();
         client.writeMessage(peerRequestMessage);
-        sentPeerRequest = true;
         LOGGER.log(Level.INFO, "Requesting peer id to server...");
     }
 
     private boolean isDisconnectedFromNetwork() {
         return peerID == Constants.DISCONNECTED_PEERID;
+    }
+
+    public void setBootPeer(boolean active) {
+        bootPeer = active;
     }
 
     @Override
@@ -264,7 +280,14 @@ public class Peer implements ICommunicationListener, Runnable {
                 Stop();
 
             case Constants.MSG_REQUEST_PEERID:
-                server.writeMessage(MessageParser.CreatePeerIDMessage(peerID));
+
+                for (int i = 0; i < availablePeerIds.size(); i++) {
+                    byte assignedId = availablePeerIds.get(i);
+                    server.writeMessage(MessageParser.CreatePeerIDMessage(assignedId));
+
+                    availablePeerIds.remove(i);
+                    break;
+                }
 
                 break;
         }
