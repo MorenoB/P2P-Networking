@@ -15,9 +15,8 @@ public class Main {
     /**
      * @param args the command line arguments
      */
-    public static void main(String[] args) {
+    public static void Notmain(String[] args) {
 
-        byte id = 0;
         /*
         if (args.length < 1) {
             LOGGER.log(Level.WARNING, "Usage: java -jar P2PNetwork { ID }");
@@ -32,26 +31,19 @@ public class Main {
             LOGGER.log(Level.WARNING, "Usage: java -jar P2PNetwork { ID }");
             return;
         }*/
-
         LOGGER.log(Level.INFO, "Starting up P2P application...");
 
-        
-        
-        Peer peer = new Peer(id);
-        
+        byte id = 0;
+        Peer peer = new Peer(id, Constants.SERVERPORT);
+
         peer.setBootPeer(true);
         peer.Start();
-        
 
         Thread peerThread = new Thread(peer);
         peerThread.start();
-        
 
-        
-        peer.JoinNetworkWithIP("localhost", Constants.SERVERPORT);
-
+        //peer.JoinNetworkWithIP("localhost", Constants.SERVERPORT);
         //peer.ConnectToPeer("localhost");
-
     }
 
 }

@@ -34,10 +34,10 @@ public class Server implements Runnable {
 
     private static final Logger LOGGER = Logger.getLogger(Server.class.getCanonicalName());
 
-    public Server() {
+    public Server(int port) {
 
         try {
-            serverSocket = new ServerSocket(Constants.SERVERPORT);
+            serverSocket = new ServerSocket(port);
         } catch (IOException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
         }
@@ -192,6 +192,10 @@ public class Server implements Runnable {
 
     public boolean isRunning() {
         return running;
+    }
+
+    public String getAddress() {
+        return Integer.toString(serverSocket.getLocalPort());
     }
 
 }

@@ -29,16 +29,18 @@ public class Peer implements ICommunicationListener, Runnable {
 
     private boolean bootPeer;
     private byte peerID;
+    private int port;
 
     private final List<Byte> availablePeerIds;
     private final LinkedHashMap<Byte, String> peerReferences;
 
-    public Peer(byte peerID) {
+    public Peer(byte peerID, int port) {
 
         this.availablePeerIds = new ArrayList<>();
         isRunning = true;
 
         this.peerID = peerID;
+        this.port = port;
 
         peerReferences = new LinkedHashMap<>(4);
 
@@ -55,7 +57,7 @@ public class Peer implements ICommunicationListener, Runnable {
             }
         }
 
-        server = new Server();
+        server = new Server(port);
 
         client = new Client();
 
@@ -83,12 +85,12 @@ public class Peer implements ICommunicationListener, Runnable {
         PopulatePeerreferences();
     }
 
-    public void ConnectToPeer(String ipAddress) {
+    public void ConnectToPeer(String ipAddress, int port) {
         if (client.HasConnection()) {
             LOGGER.log(Level.WARNING, "Client already has a connection while setting up a new connection!");
             client.StopConnection();
         }
-        client.SetupConnection(ipAddress, Constants.SERVERPORT);
+        client.SetupConnection(ipAddress, port);
     }
 
     private void SetID(byte newId) {
@@ -137,11 +139,12 @@ public class Peer implements ICommunicationListener, Runnable {
     public void JoinNetworkWithIP(String ipAdress, int port) {
         client.SetupConnection(ipAdress, port);
 
-        while (!client.isReady()) {
+        /* while (!client.isReady()) {
             //
+        }*/
+        if (peerID == Constants.DISCONNECTED_PEERID) {
+            RequestPeerId();
         }
-
-        RequestPeerId();
     }
 
     private Byte CalculatePeerId(Byte curId, Byte difId, Byte timesRecursed) {
@@ -164,6 +167,10 @@ public class Peer implements ICommunicationListener, Runnable {
         LOGGER.log(Level.INFO, "Peer id set to {0}", peerId);
     }
 
+    private void StopConnectionToServer() {
+        client.StopConnection();
+    }
+
     private void DisconnectFromNetwork() {
         //When peers join a network, they are getting a peer id
         SetID(Constants.DISCONNECTED_PEERID);
@@ -183,6 +190,14 @@ public class Peer implements ICommunicationListener, Runnable {
 
     public void setBootPeer(boolean active) {
         bootPeer = active;
+    }
+
+    public int getId() {
+        return (int) peerID;
+    }
+
+    public String getAddress() {
+        return server.getAddress();
     }
 
     @Override
@@ -229,6 +244,8 @@ public class Peer implements ICommunicationListener, Runnable {
                 String recievedString = recievedMsg.getMsg();
                 Byte recievedId = Byte.parseByte(recievedString);
                 SetID(recievedId);
+
+                StopConnectionToServer();
 
                 LOGGER.log(Level.INFO, "Client recieved peer id = {0}", recievedString);
                 break;
@@ -300,5 +317,4 @@ public class Peer implements ICommunicationListener, Runnable {
             Update();
         }
     }
-
 }
