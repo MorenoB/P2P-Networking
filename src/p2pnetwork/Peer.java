@@ -8,8 +8,8 @@ import communication.Client;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import communication.messages.Message;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Map.Entry;
 
 /**
@@ -28,7 +28,7 @@ public class Peer implements ICommunicationListener, Runnable {
     private boolean sentPeerRequest;
     private byte peerID;
 
-    private final List<Entry<Byte, String>> peerReferences;
+    private final LinkedHashMap<Byte, String> peerReferences;
 
     public Peer(byte peerID) {
         isRunning = true;
@@ -38,7 +38,7 @@ public class Peer implements ICommunicationListener, Runnable {
 
         this.peerID = peerID;
 
-        peerReferences = new ArrayList<>(4);
+        peerReferences = new LinkedHashMap<>(4);
     }
 
     public void Start() {
@@ -66,6 +66,8 @@ public class Peer implements ICommunicationListener, Runnable {
         while (!server.isReady()) {
             //
         }
+
+        PopulatePeerreferences();
     }
 
     public void ConnectToPeer(String ipAddress) {
@@ -80,6 +82,35 @@ public class Peer implements ICommunicationListener, Runnable {
         peerID = newId;
     }
 
+    private void PopulatePeerreferences() {
+        byte otherId = peerID;
+
+        for (int i = 0; i < Constants.INITIAL_HASHMAP_SIZE; i++) {
+            otherId = (byte) Math.floorMod((int) (peerID + Math.pow(2, i)), Constants.P2PSIZE);
+            peerReferences.put(otherId, "test" + otherId);
+            LOGGER.log(Level.INFO, getPeerreferenceByIndex(i).toString());
+        }
+    }
+
+    private Entry getPeerreferenceByIndex(int index) {
+        Iterator iterator = peerReferences.entrySet().iterator();
+        int n = 0;
+        while (iterator.hasNext()) {
+            Entry entry = (Entry) iterator.next();
+            if (n == index) {
+                return entry;
+            }
+            n++;
+        }
+        return null;
+    }
+
+    private byte CalculateDistance(byte srcID, byte destID) {
+        byte result = (byte) Math.floorMod(destID - srcID + Constants.P2PSIZE, Constants.P2PSIZE);
+
+        return result;
+    }
+
     private void Update() {
 
         /*if(client == null) return;
@@ -88,26 +119,20 @@ public class Peer implements ICommunicationListener, Runnable {
             return;
         }*/
     }
-    
-    public void JoinNetworkWithIP(String ipAdress, int port)
-    {
+
+    public void JoinNetworkWithIP(String ipAdress, int port) {
         client.SetupConnection(ipAdress, port);
-        
+
         while (!client.isReady()) {
             //
         }
-        
+
         RequestPeerId();
     }
-    
-    
-    private Byte CalculatePeerId(Byte curId, Byte difId, Byte timesRecursed)
-    {
+
+    private Byte CalculatePeerId(Byte curId, Byte difId, Byte timesRecursed) {
         timesRecursed++;
-        
-        
-        
-        
+
         return curId;
     }
 
