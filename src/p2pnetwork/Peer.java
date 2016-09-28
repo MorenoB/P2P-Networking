@@ -10,9 +10,7 @@ import java.util.logging.Logger;
 import data.Message;
 import data.PeerReference;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map.Entry;
 
 /**
  *
@@ -139,12 +137,6 @@ public class Peer implements ICommunicationListener, Runnable {
         if (peerID == Constants.DISCONNECTED_PEERID) {
             RequestPeerId();
         }
-    }
-
-    private Byte CalculatePeerId(Byte curId, Byte difId, Byte timesRecursed) {
-        timesRecursed++;
-
-        return curId;
     }
 
     private void Stop() {
