@@ -3,7 +3,7 @@ package communication;
 import Interfaces.ICommunicationListener;
 import Util.Constants;
 import Util.MessageParser;
-import communication.messages.Message;
+import data.Message;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;

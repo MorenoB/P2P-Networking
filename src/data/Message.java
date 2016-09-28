@@ -1,4 +1,4 @@
-package communication.messages;
+package data;
 
 public class Message {
 

@@ -1,6 +1,6 @@
 package Util;
 
-import communication.messages.Message;
+import data.Message;
 import org.json.JSONObject;
 
 /**
@@ -23,11 +23,11 @@ public final class MessageParser {
         return message;
     }
     
-    public static Message CreatePeerIDMessage(byte peerId)
+    public static Message CreatePeerIDMessage(int peerId)
     {
         Message message = new Message(Constants.MSG_PEERID);
         
-        message.setMsg(Byte.toString(peerId));
+        message.setMsg(Integer.toString(peerId));
         
         return message;
     }

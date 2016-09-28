@@ -146,6 +146,11 @@ public class Application extends javax.swing.JFrame {
         peerThread.start();
 
         model.add(list_peerList.getComponentCount(), newPeer);
+        
+        
+        int portNumber = Integer.parseInt(field_Port.getText());
+        portNumber++;
+        field_Port.setText(Integer.toString(portNumber));
     }//GEN-LAST:event_buton_AddPeerActionPerformed
 
     private void list_peerListValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_list_peerListValueChanged

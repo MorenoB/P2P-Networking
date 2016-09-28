@@ -12,7 +12,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import Interfaces.ICommunicationListener;
 import Util.MessageParser;
-import communication.messages.Message;
+import data.Message;
 import org.json.JSONObject;
 
 /**
@@ -113,7 +113,7 @@ public class Client implements Runnable {
      * Shuts down the listeners and itself.
      */
     public void StopConnection() {
-        LOGGER.log(Level.INFO, "Shutting down server.");
+        LOGGER.log(Level.INFO, "Shutting down client.");
 
         try {
             listenRunnable.stop();

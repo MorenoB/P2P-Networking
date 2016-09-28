@@ -12,7 +12,7 @@ public final class Constants {
     
     public static final byte DISCONNECTED_PEERID = -1;
     
-    public static final byte P2PSIZE = 16;
+    public static final int P2PSIZE = 16;
     public static final byte INITIAL_HASHMAP_SIZE = 4;
     
     
@@ -22,4 +22,5 @@ public final class Constants {
     public static final int MSG_PEERID = 3;
     public static final int MSG_REQUEST_PEERID = 4;
     public static final int MSG_IPADDRESS = 5;
+    public static final int MSG_JOIN = 6;
 }

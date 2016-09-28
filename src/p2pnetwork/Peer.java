@@ -7,10 +7,10 @@ import communication.Server;
 import communication.Client;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import communication.messages.Message;
+import data.Message;
+import data.PeerReference;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map.Entry;
 
@@ -28,21 +28,21 @@ public class Peer implements ICommunicationListener, Runnable {
     private Client client;
 
     private boolean bootPeer;
-    private byte peerID;
-    private int port;
+    private int peerID;
+    private final int port;
 
     private final List<Byte> availablePeerIds;
-    private final LinkedHashMap<Byte, String> peerReferences;
+    private final List<PeerReference> peerReferences;
 
     public Peer(byte peerID, int port) {
 
-        this.availablePeerIds = new ArrayList<>();
+        availablePeerIds = new ArrayList<>();
         isRunning = true;
 
         this.peerID = peerID;
         this.port = port;
 
-        peerReferences = new LinkedHashMap<>(4);
+        peerReferences = new ArrayList<>(4);
 
     }
 
@@ -81,8 +81,6 @@ public class Peer implements ICommunicationListener, Runnable {
         while (!server.isReady()) {
             //
         }
-
-        PopulatePeerreferences();
     }
 
     public void ConnectToPeer(String ipAddress, int port) {
@@ -97,32 +95,28 @@ public class Peer implements ICommunicationListener, Runnable {
         peerID = newId;
     }
 
-    private void PopulatePeerreferences() {
-        byte otherId = peerID;
+    private boolean AddPeerReference(PeerReference newPR) {
+        
+        if(peerReferences.size() == Constants.INITIAL_HASHMAP_SIZE)
+            return false;
+        
+        for (int i = 0; i < peerReferences.size(); i++) {
+            PeerReference curRef = peerReferences.get(i);
 
-        for (int i = 0; i < Constants.INITIAL_HASHMAP_SIZE; i++) {
-            otherId = (byte) Math.floorMod((int) (peerID + Math.pow(2, i)), Constants.P2PSIZE);
-            peerReferences.put(otherId, "test" + otherId);
-            //LOGGER.log(Level.INFO, getPeerreferenceByIndex(i).toString());
-            LOGGER.log(Level.INFO, "Distance between my ({0}) and other ({1}) = {2}", new Object[]{peerID, getPeerreferenceByIndex(i).getKey(), CalculateDistance(peerID, (byte) getPeerreferenceByIndex(i).getKey())});
-        }
-    }
-
-    private Entry getPeerreferenceByIndex(int index) {
-        Iterator iterator = peerReferences.entrySet().iterator();
-        int n = 0;
-        while (iterator.hasNext()) {
-            Entry entry = (Entry) iterator.next();
-            if (n == index) {
-                return entry;
+            if (curRef != null) {
+                continue;
             }
-            n++;
+
+            peerReferences.set(i, newPR);
+
+            return true;
         }
-        return null;
+
+        return false;
     }
 
-    private byte CalculateDistance(byte srcID, byte destID) {
-        byte result = (byte) Math.floorMod(destID - srcID + Constants.P2PSIZE, Constants.P2PSIZE);
+    private int CalculateDistance(int srcID, int destID) {
+        int result = Math.floorMod(destID - srcID + Constants.P2PSIZE, Constants.P2PSIZE);
 
         return result;
     }
@@ -298,15 +292,30 @@ public class Peer implements ICommunicationListener, Runnable {
 
             case Constants.MSG_REQUEST_PEERID:
 
+                int assignedId = -1;
+                String assignedAddress = "";
+                int assignedPort = -1;
+                
                 for (int i = 0; i < availablePeerIds.size(); i++) {
-                    byte assignedId = availablePeerIds.get(i);
+                    assignedId = availablePeerIds.get(i);
                     server.writeMessage(MessageParser.CreatePeerIDMessage(assignedId));
 
                     availablePeerIds.remove(i);
                     break;
                 }
-
+                
                 break;
+                
+           /* case Constants.MSG_JOIN:
+                
+                
+                PeerReference newRef = new PeerReference(assignedId, assignedAddress, assignedPort);
+                
+                if(AddPeerReference(newRef))
+                    break;
+                
+                //Failed to add reference to this peer, go to next peer!
+                break;*/
         }
     }
 
