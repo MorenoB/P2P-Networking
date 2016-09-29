@@ -20,13 +20,15 @@ import org.json.JSONObject;
  *
  * @author Moreno
  */
-public class Server {
+public class Server implements Runnable {
 
     private final List<ICommunicationListener> listeners = new ArrayList<>();
 
     private Socket connectedSocket;
     private ServerSocket serverSocket;
-    
+
+    private boolean running;
+
     private ListenRunnable listenRunnable;
     private SendRunnable sendRunnable;
 
@@ -45,6 +47,32 @@ public class Server {
         });
     }
 
+    @Override
+    public void run() {
+
+        LOGGER.log(Level.INFO, "Starting up server...");
+
+        running = true;
+
+        while (running) {
+
+            if (connectedSocket == null || !connectedSocket.isConnected()) {
+                ListenForConnection();
+            }
+
+            /*if(RunnablesHaveStopped())
+            {
+                LOGGER.log(Level.SEVERE, "ListenRunnable/SendRunnable stopped running! Shutting down connection...");
+                StopConnection();
+            }*/
+            try {
+                Thread.sleep(Constants.CYCLEWAIT);
+            } catch (InterruptedException ex) {
+                LOGGER.log(Level.SEVERE, null, ex);
+            }
+        }
+    }
+
     public void AddListener(ICommunicationListener toAdd) {
         listeners.add(toAdd);
 
@@ -54,12 +82,6 @@ public class Server {
 
         if (sendRunnable != null) {
             sendRunnable.AddListener(toAdd);
-        }
-    }
-
-    public void StayOpenForConnection() {        
-        if (connectedSocket == null || !connectedSocket.isConnected()) {
-            ListenForConnection();
         }
     }
 
@@ -119,15 +141,13 @@ public class Server {
 
     public void Stop() {
         StopConnection();
+        running = false;
     }
 
-    public boolean RunnablesHaveStopped() {
-        return listenRunnable == null || sendRunnable == null || !listenRunnable.isRunning() || !sendRunnable.isRunning();
-    }
-    
-    public boolean HasConnection()
-    {
-        return connectedSocket != null && connectedSocket.isConnected();
+    private boolean RunnablesHaveStopped() {
+        //Considered Stopped if we have a connected socket and we have got a non working runnable
+        return ((connectedSocket != null && connectedSocket.isConnected())
+                && (!listenRunnable.isRunning() || !sendRunnable.isRunning()));
     }
 
     public Message getMessage() {
@@ -154,6 +174,10 @@ public class Server {
         sendRunnable.writeMessage(jsonObj.toString());
     }
 
+    public boolean isReady() {
+        return isRunning() && !RunnablesHaveStopped();
+    }
+
     public void writeMessage(Message message) {
 
         JSONObject jsonObj = new JSONObject(message);
@@ -164,6 +188,10 @@ public class Server {
         }
 
         sendRunnable.writeMessage(jsonObj.toString());
+    }
+
+    public boolean isRunning() {
+        return running;
     }
 
     public String getAddress() {

@@ -19,15 +19,40 @@ import org.json.JSONObject;
  *
  * @author Moreno
  */
-public class Client {
+public class Client implements Runnable {
 
     private final List<ICommunicationListener> listeners = new ArrayList<>();
+
+    private boolean hasConnection;
+    private boolean running;
 
     private ListenRunnable listenRunnable;
     private SendRunnable sendRunnable;
     private Socket connectedSocket;
 
     private static final Logger LOGGER = Logger.getLogger(Client.class.getCanonicalName());
+
+    @Override
+    public void run() {
+
+        LOGGER.log(Level.INFO, "Starting up client...");
+
+        running = true;
+
+        while (running) {
+
+            /*if(RunnablesHaveStopped())
+            {
+                LOGGER.log(Level.SEVERE, "ListenRunnable/SendRunnable stopped running! Shutting down connection...");
+                StopConnection();
+            }*/
+            try {
+                Thread.sleep(Constants.CYCLEWAIT);
+            } catch (InterruptedException ex) {
+                LOGGER.log(Level.SEVERE, null, ex);
+            }
+        }
+    }
 
     public void AddListener(ICommunicationListener toAdd) {
         listeners.add(toAdd);
@@ -41,13 +66,18 @@ public class Client {
         }
     }
 
+    public boolean HasConnection() {
+        return hasConnection;
+    }
+
     public void SetupConnection(String host, int port) {
-        if (HasConnection()) {
+        if (hasConnection) {
             return;
         }
 
         try {
             connectedSocket = new Socket(host, port);
+            hasConnection = connectedSocket.isConnected();
 
             listeners.stream().forEach((sl) -> {
                 sl.OnClientConnectedToServer();
@@ -73,6 +103,7 @@ public class Client {
                 sl.OnClientError();
             });
 
+            hasConnection = false;
             LOGGER.log(Level.SEVERE, null, ex);
         }
 
@@ -100,6 +131,7 @@ public class Client {
         listeners.stream().forEach((sl) -> {
             sl.OnClientDisconnected();
         });
+        hasConnection = false;
 
         try {
             Thread.sleep(1000);
@@ -108,21 +140,23 @@ public class Client {
         }
     }
 
-    public boolean RunnablesHaveStopped() {
-        return listenRunnable == null || sendRunnable == null || !listenRunnable.isRunning() || !sendRunnable.isRunning();
-    }
-    
-    public boolean HasConnection()
-    {
-        return connectedSocket != null && connectedSocket.isConnected();
+    private boolean RunnablesHaveStopped() {
+        //Considered Stopped if we have a connected socket and we have got a non working runnable
+        return ((connectedSocket != null && connectedSocket.isConnected())
+                && (!listenRunnable.isRunning() || !sendRunnable.isRunning()));
     }
 
     public void Stop() {
         StopConnection();
+        running = false;
     }
 
     public Message getMessage() {
         return MessageParser.DecodeJSON(listenRunnable.getRawMessage());
+    }
+
+    public boolean isReady() {
+        return isRunning() && !RunnablesHaveStopped();
     }
 
     /**
@@ -153,5 +187,9 @@ public class Client {
         listeners.stream().forEach((sl) -> {
             sl.OnClientSentMessage();
         });
+    }
+
+    public boolean isRunning() {
+        return running;
     }
 }
