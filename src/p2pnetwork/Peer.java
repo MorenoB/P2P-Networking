@@ -11,6 +11,7 @@ import data.Message;
 import data.PeerReference;
 import java.util.ArrayList;
 import java.util.List;
+import org.json.JSONObject;
 
 /**
  *
@@ -75,18 +76,23 @@ public class Peer implements ICommunicationListener, Runnable {
         }
 
         clientThread.start();
-
-        while (!server.isReady()) {
-            //
-        }
     }
 
     public void ConnectToPeer(String ipAddress, int port) {
         if (client.HasConnection()) {
             LOGGER.log(Level.WARNING, "Client already has a connection while setting up a new connection!");
-            client.StopConnection();
+            DisconnectPeerFromOtherPeer();
         }
         client.SetupConnection(ipAddress, port);
+    }
+    
+    private void DisconnectPeerFromOtherPeer()
+    {
+        //Notify server we want to close connection.
+        client.writeMessage(MessageParser.CreateQuitMessage());
+        
+        //Stop client connection.
+        client.StopConnection();
     }
 
     private void SetID(byte newId) {
@@ -131,7 +137,7 @@ public class Peer implements ICommunicationListener, Runnable {
     public void JoinNetworkWithIP(String ipAdress, int port) {
         client.SetupConnection(ipAdress, port);
 
-        /* while (!client.isReady()) {
+        /*while (!client.isReady()) {
             //
         }*/
         if (peerID == Constants.DISCONNECTED_PEERID) {
@@ -151,10 +157,6 @@ public class Peer implements ICommunicationListener, Runnable {
         SetID(peerId);
 
         LOGGER.log(Level.INFO, "Peer id set to {0}", peerId);
-    }
-
-    private void StopConnectionToServer() {
-        client.StopConnection();
     }
 
     private void DisconnectFromNetwork() {
@@ -208,8 +210,8 @@ public class Peer implements ICommunicationListener, Runnable {
     }
 
     @Override
-    public void OnClientSentMessage() {
-        LOGGER.log(Level.INFO, "Client has sent a message!");
+    public void OnClientSentMessage(JSONObject jsonObj) {
+        LOGGER.log(Level.INFO, "Client has sent {0}", jsonObj);
     }
 
     @Override
@@ -232,7 +234,7 @@ public class Peer implements ICommunicationListener, Runnable {
                 Byte recievedId = Byte.parseByte(recievedString);
                 SetID(recievedId);
 
-                StopConnectionToServer();
+                DisconnectPeerFromOtherPeer();
 
                 LOGGER.log(Level.INFO, "Client recieved peer id = {0}", recievedString);
                 break;
@@ -260,8 +262,8 @@ public class Peer implements ICommunicationListener, Runnable {
     }
 
     @Override
-    public void OnServerSentMessage() {
-        LOGGER.log(Level.INFO, "Server has sent a message!");
+    public void OnServerSentMessage(JSONObject jsonObj) {
+        LOGGER.log(Level.INFO, "Server has sent {0}", jsonObj);
     }
 
     @Override
@@ -281,7 +283,7 @@ public class Peer implements ICommunicationListener, Runnable {
                 break;
             case Constants.MSG_QUIT:
                 LOGGER.log(Level.SEVERE, "Server recieved quit command!");
-                Stop();
+                server.StopConnection();
 
             case Constants.MSG_REQUEST_PEERID:
 

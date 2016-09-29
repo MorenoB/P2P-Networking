@@ -33,6 +33,15 @@ public final class MessageParser {
         return message;
     }
     
+    public static Message CreateQuitMessage()
+    {
+        Message message = new Message(Constants.MSG_QUIT);
+        
+        message.setMsg("SHUTDOWN");
+        
+        return message;
+    }
+    
     public static Message CreatePeerIDRequest()
     {
         Message message = new Message(Constants.MSG_REQUEST_PEERID);

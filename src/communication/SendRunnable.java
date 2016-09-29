@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.json.JSONObject;
 
 /**
  * Sender thread.
@@ -16,7 +17,7 @@ class SendRunnable implements Runnable {
 
     private List<ICommunicationListener> listeners = new ArrayList<>();
     private final PrintWriter out;
-    private final ConcurrentLinkedQueue<String> queue;
+    private final ConcurrentLinkedQueue<JSONObject> queue;
     private boolean running;
     private final String name;
 
@@ -30,12 +31,11 @@ class SendRunnable implements Runnable {
 
     @Override
     public void run() {
-        String outputLine;
         running = true;
 
         while (running) {
-            outputLine = queue.poll();
-            if (outputLine == null) {
+            JSONObject lastObj = queue.poll();
+            if (lastObj == null) {
                 try {
                     Thread.sleep(Constants.CYCLEWAIT);
                 } catch (Throwable e) {
@@ -43,18 +43,17 @@ class SendRunnable implements Runnable {
                 }
             } else {
                 // Send outputLine
-                out.println(outputLine);
+                out.println(lastObj);
 
                 if ("SERVER".equals(name)) {
                     listeners.stream().forEach((listener) -> {
-                        listener.OnServerSentMessage();
+                        listener.OnServerSentMessage(lastObj);
                     });
                 } else {
                     listeners.stream().forEach((listener) -> {
-                        listener.OnClientSentMessage();
+                        listener.OnClientSentMessage(lastObj);
                     });
                 }
-                LOGGER.log(Level.INFO, name + " sent {0}", outputLine);
             }
         }
     }
@@ -72,7 +71,7 @@ class SendRunnable implements Runnable {
         running = false;
     }
 
-    public void writeMessage(String message) {
+    public void writeMessage(JSONObject message) {
         queue.add(message);
     }
 

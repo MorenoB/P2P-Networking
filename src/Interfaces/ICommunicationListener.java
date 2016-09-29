@@ -1,5 +1,7 @@
 package Interfaces;
 
+import org.json.JSONObject;
+
 /**
  *
  * @author Moreno
@@ -10,13 +12,13 @@ public interface ICommunicationListener {
     public void OnClientDisconnected();
     public void OnClientError();
     
-    public void OnClientSentMessage();
+    public void OnClientSentMessage(JSONObject jsonObj);
     public void OnClientRecievedMessage();
     
     public void OnServerStarted();
     public void OnServerAcceptedConnection();
     public void OnServerError();
     
-    public void OnServerSentMessage();
+    public void OnServerSentMessage(JSONObject jsonObj);
     public void OnServerRecievedMessage();
 }

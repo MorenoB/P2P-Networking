@@ -141,9 +141,7 @@ public class Client implements Runnable {
     }
 
     private boolean RunnablesHaveStopped() {
-        //Considered Stopped if we have a connected socket and we have got a non working runnable
-        return ((connectedSocket != null && connectedSocket.isConnected())
-                && (!listenRunnable.isRunning() || !sendRunnable.isRunning()));
+        return listenRunnable == null || sendRunnable == null || !listenRunnable.isRunning() || !sendRunnable.isRunning();
     }
 
     public void Stop() {
@@ -171,22 +169,14 @@ public class Client implements Runnable {
 
         JSONObject jsonObj = new JSONObject(msgMessage);
 
-        sendRunnable.writeMessage(jsonObj.toString());
-
-        listeners.stream().forEach((sl) -> {
-            sl.OnClientSentMessage();
-        });
+        sendRunnable.writeMessage(jsonObj);
     }
 
     public void writeMessage(Message message) {
 
         JSONObject jsonObj = new JSONObject(message);
 
-        sendRunnable.writeMessage(jsonObj.toString());
-
-        listeners.stream().forEach((sl) -> {
-            sl.OnClientSentMessage();
-        });
+        sendRunnable.writeMessage(jsonObj);
     }
 
     public boolean isRunning() {

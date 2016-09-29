@@ -145,9 +145,7 @@ public class Server implements Runnable {
     }
 
     private boolean RunnablesHaveStopped() {
-        //Considered Stopped if we have a connected socket and we have got a non working runnable
-        return ((connectedSocket != null && connectedSocket.isConnected())
-                && (!listenRunnable.isRunning() || !sendRunnable.isRunning()));
+        return listenRunnable == null || sendRunnable == null || !listenRunnable.isRunning() || !sendRunnable.isRunning();
     }
 
     public Message getMessage() {
@@ -171,7 +169,7 @@ public class Server implements Runnable {
             return;
         }
 
-        sendRunnable.writeMessage(jsonObj.toString());
+        sendRunnable.writeMessage(jsonObj);
     }
 
     public boolean isReady() {
@@ -187,7 +185,7 @@ public class Server implements Runnable {
             return;
         }
 
-        sendRunnable.writeMessage(jsonObj.toString());
+        sendRunnable.writeMessage(jsonObj);
     }
 
     public boolean isRunning() {
