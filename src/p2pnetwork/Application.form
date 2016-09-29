@@ -34,11 +34,16 @@
                           <Component id="field_Port" alignment="0" max="32767" attributes="0"/>
                       </Group>
                       <EmptySpace max="-2" attributes="0"/>
-                      <Component id="button_Refresh" pref="145" max="32767" attributes="0"/>
+                      <Component id="button_Refresh" pref="105" max="32767" attributes="0"/>
                       <EmptySpace type="unrelated" max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="0" attributes="0">
+                          <Component id="label_id" min="-2" pref="57" max="-2" attributes="0"/>
+                          <Component id="label_address" max="32767" attributes="0"/>
+                      </Group>
+                      <EmptySpace max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="0" max="-2" attributes="0">
-                          <Component id="label_Address" pref="142" max="32767" attributes="0"/>
-                          <Component id="label_ID" max="32767" attributes="0"/>
+                          <Component id="label_ID_value" pref="119" max="32767" attributes="0"/>
+                          <Component id="label_Address_Value" max="32767" attributes="0"/>
                       </Group>
                   </Group>
               </Group>
@@ -52,14 +57,20 @@
               <EmptySpace max="-2" attributes="0"/>
               <Component id="jScrollPane1" min="-2" max="-2" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
-              <Component id="label_Address" max="32767" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="label_Address_Value" alignment="3" max="32767" attributes="0"/>
+                  <Component id="label_address" alignment="3" min="-2" max="-2" attributes="0"/>
+              </Group>
               <EmptySpace max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
                   <Group type="103" groupAlignment="3" attributes="0">
                       <Component id="buton_AddPeer" alignment="3" min="-2" max="-2" attributes="0"/>
                       <Component id="button_Refresh" alignment="3" min="-2" max="-2" attributes="0"/>
                   </Group>
-                  <Component id="label_ID" min="-2" max="-2" attributes="0"/>
+                  <Group type="103" groupAlignment="3" attributes="0">
+                      <Component id="label_ID_value" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="label_id" alignment="3" min="-2" max="-2" attributes="0"/>
+                  </Group>
               </Group>
               <EmptySpace min="-2" pref="1" max="-2" attributes="0"/>
               <Component id="label_Port" min="-2" max="-2" attributes="0"/>
@@ -118,14 +129,14 @@
         <Property name="text" type="java.lang.String" value="Port"/>
       </Properties>
     </Component>
-    <Component class="javax.swing.JLabel" name="label_Address">
+    <Component class="javax.swing.JLabel" name="label_Address_Value">
       <Properties>
-        <Property name="text" type="java.lang.String" value="jLabel1"/>
+        <Property name="text" type="java.lang.String" value=" "/>
       </Properties>
     </Component>
-    <Component class="javax.swing.JLabel" name="label_ID">
+    <Component class="javax.swing.JLabel" name="label_ID_value">
       <Properties>
-        <Property name="text" type="java.lang.String" value="jLabel2"/>
+        <Property name="text" type="java.lang.String" value=" "/>
       </Properties>
     </Component>
     <Component class="javax.swing.JToggleButton" name="button_Refresh">
@@ -135,6 +146,16 @@
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="button_RefreshActionPerformed"/>
       </Events>
+    </Component>
+    <Component class="javax.swing.JLabel" name="label_id">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Peer ID"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JLabel" name="label_address">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Address"/>
+      </Properties>
     </Component>
   </SubComponents>
 </Form>

@@ -77,9 +77,11 @@ public class Application extends javax.swing.JFrame {
         buton_AddPeer = new javax.swing.JButton();
         field_Port = new javax.swing.JTextField();
         label_Port = new javax.swing.JLabel();
-        label_Address = new javax.swing.JLabel();
-        label_ID = new javax.swing.JLabel();
+        label_Address_Value = new javax.swing.JLabel();
+        label_ID_value = new javax.swing.JLabel();
         button_Refresh = new javax.swing.JToggleButton();
+        label_id = new javax.swing.JLabel();
+        label_address = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -107,9 +109,9 @@ public class Application extends javax.swing.JFrame {
         label_Port.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         label_Port.setText("Port");
 
-        label_Address.setText("jLabel1");
+        label_Address_Value.setText(" ");
 
-        label_ID.setText("jLabel2");
+        label_ID_value.setText(" ");
 
         button_Refresh.setText("Refresh List");
         button_Refresh.addActionListener(new java.awt.event.ActionListener() {
@@ -117,6 +119,10 @@ public class Application extends javax.swing.JFrame {
                 button_RefreshActionPerformed(evt);
             }
         });
+
+        label_id.setText("Peer ID");
+
+        label_address.setText("Address");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -132,11 +138,15 @@ public class Application extends javax.swing.JFrame {
                             .addComponent(label_Port, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(field_Port))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(button_Refresh, javax.swing.GroupLayout.DEFAULT_SIZE, 145, Short.MAX_VALUE)
+                        .addComponent(button_Refresh, javax.swing.GroupLayout.DEFAULT_SIZE, 105, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(label_id, javax.swing.GroupLayout.PREFERRED_SIZE, 57, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(label_address, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(label_Address, javax.swing.GroupLayout.DEFAULT_SIZE, 142, Short.MAX_VALUE)
-                            .addComponent(label_ID, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                            .addComponent(label_ID_value, javax.swing.GroupLayout.DEFAULT_SIZE, 119, Short.MAX_VALUE)
+                            .addComponent(label_Address_Value, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -145,13 +155,17 @@ public class Application extends javax.swing.JFrame {
                 .addContainerGap()
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(label_Address, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(label_Address_Value, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(label_address))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                         .addComponent(buton_AddPeer)
                         .addComponent(button_Refresh))
-                    .addComponent(label_ID))
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(label_ID_value)
+                        .addComponent(label_id)))
                 .addGap(1, 1, 1)
                 .addComponent(label_Port)
                 .addGap(3, 3, 3)
@@ -194,11 +208,11 @@ public class Application extends javax.swing.JFrame {
 
         int index = evt.getLastIndex() == lastSelectedIndex ? evt.getFirstIndex() : evt.getLastIndex();
 
-        lastSelectedIndex = index;
+        lastSelectedIndex = Math.min(index, peerList.size());
         Peer selectedPeer = peerList.get(lastSelectedIndex);
 
-        label_Address.setText(selectedPeer.getAddress());
-        label_ID.setText(Integer.toString(selectedPeer.getId()));
+        label_Address_Value.setText(selectedPeer.getAddress());
+        label_ID_value.setText(Integer.toString(selectedPeer.getId()));
 
         System.out.println("Selected" + selectedPeer.toString());
     }//GEN-LAST:event_list_peerListValueChanged
@@ -248,9 +262,11 @@ public class Application extends javax.swing.JFrame {
     private javax.swing.JToggleButton button_Refresh;
     private javax.swing.JTextField field_Port;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JLabel label_Address;
-    private javax.swing.JLabel label_ID;
+    private javax.swing.JLabel label_Address_Value;
+    private javax.swing.JLabel label_ID_value;
     private javax.swing.JLabel label_Port;
+    private javax.swing.JLabel label_address;
+    private javax.swing.JLabel label_id;
     private javax.swing.JList<String> list_peerList;
     // End of variables declaration//GEN-END:variables
 }

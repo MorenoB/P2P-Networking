@@ -194,7 +194,7 @@ public class Server implements Runnable {
     }
 
     public String getAddress() {
-        return Integer.toString(serverSocket.getLocalPort());
+        return serverSocket.getInetAddress().getHostName();
     }
 
 }
