@@ -7,8 +7,8 @@ import Util.Constants;
  *
  * @author Moreno
  */
-public class PeerReference extends Message implements IMessage{
-    
+public class PeerReference extends Message implements IMessage {
+
     private final int Id;
     private final String address;
     private final int portNumber;
@@ -24,6 +24,7 @@ public class PeerReference extends Message implements IMessage{
         return address;
     }
 
+    @Override
     public int getId() {
         return Id;
     }
@@ -41,7 +42,5 @@ public class PeerReference extends Message implements IMessage{
     public String getMsg() {
         return msg;
     }
-    
-    
-    
+
 }

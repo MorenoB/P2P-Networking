@@ -44,7 +44,7 @@ class SendRunnable implements Runnable {
             } else {
                 // Send outputLine
                 out.println(lastObj);
-                
+
                 out.flush();
 
                 if ("SERVER".equals(name)) {
@@ -70,9 +70,9 @@ class SendRunnable implements Runnable {
 
     public void Stop() {
         LOGGER.log(Level.INFO, "{0} stopping Send Runnable...", name);
-        
+
         out.close();
-        
+
         running = false;
     }
 
