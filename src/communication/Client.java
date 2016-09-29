@@ -116,11 +116,11 @@ public class Client implements Runnable {
         LOGGER.log(Level.INFO, "Shutting down client.");
 
         try {
-            listenRunnable.stop();
+            listenRunnable.Stop();
         } catch (Throwable e) {
         }
         try {
-            sendRunnable.stop();
+            sendRunnable.Stop();
         } catch (Throwable e) {
         }
         try {

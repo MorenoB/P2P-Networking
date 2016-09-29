@@ -11,6 +11,7 @@ import data.Message;
 import data.PeerReference;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import org.json.JSONObject;
 
 /**
@@ -26,6 +27,7 @@ public class Peer implements ICommunicationListener, Runnable {
     private Server server;
     private Client client;
 
+    private boolean clientIsConnected;
     private boolean bootPeer;
     private int peerID;
     private final int port;
@@ -33,15 +35,19 @@ public class Peer implements ICommunicationListener, Runnable {
     private final List<Byte> availablePeerIds;
     private final List<PeerReference> peerReferences;
 
+    private final ConcurrentLinkedQueue<Message> clientMessageQueue;
+
     public Peer(byte peerID, int port) {
 
-        availablePeerIds = new ArrayList<>();
-        isRunning = true;
+        this.clientMessageQueue = new ConcurrentLinkedQueue<>();
+
+        this.availablePeerIds = new ArrayList<>();
+        this.isRunning = true;
 
         this.peerID = peerID;
         this.port = port;
 
-        peerReferences = new ArrayList<>(4);
+        this.peerReferences = new ArrayList<>(4);
 
     }
 
@@ -85,14 +91,10 @@ public class Peer implements ICommunicationListener, Runnable {
         }
         client.SetupConnection(ipAddress, port);
     }
-    
-    private void DisconnectPeerFromOtherPeer()
-    {
+
+    private void DisconnectPeerFromOtherPeer() {
         //Notify server we want to close connection.
-        client.writeMessage(MessageParser.CreateQuitMessage());
-        
-        //Stop client connection.
-        client.StopConnection();
+        clientMessageQueue.add(MessageParser.CreateQuitMessage());
     }
 
     private void SetID(byte newId) {
@@ -100,10 +102,11 @@ public class Peer implements ICommunicationListener, Runnable {
     }
 
     private boolean AddPeerReference(PeerReference newPR) {
-        
-        if(peerReferences.size() == Constants.INITIAL_HASHMAP_SIZE)
+
+        if (peerReferences.size() == Constants.INITIAL_HASHMAP_SIZE) {
             return false;
-        
+        }
+
         for (int i = 0; i < peerReferences.size(); i++) {
             PeerReference curRef = peerReferences.get(i);
 
@@ -127,11 +130,18 @@ public class Peer implements ICommunicationListener, Runnable {
 
     private void Update() {
 
-        /*if(client == null) return;
+        if (clientIsConnected && client != null) {
+            Message msgToSend = clientMessageQueue.poll();
 
-        if (!client.HasConnection()) {
-            return;
-        }*/
+            if (msgToSend != null) {
+                client.writeMessage(msgToSend);
+
+                //Special case; Close down client if we detect a QUIT message.
+                if (msgToSend.getMessageType() == Constants.MSG_QUIT) {
+                    client.StopConnection();
+                }
+            }
+        }
     }
 
     public void JoinNetworkWithIP(String ipAdress, int port) {
@@ -163,13 +173,12 @@ public class Peer implements ICommunicationListener, Runnable {
         //When peers join a network, they are getting a peer id
         SetID(Constants.DISCONNECTED_PEERID);
 
-        
         LOGGER.log(Level.INFO, "Peer is disconnected! Peer id set to {0}", Constants.DISCONNECTED_PEERID);
     }
 
     private void RequestPeerId() {
         Message peerRequestMessage = MessageParser.CreatePeerIDRequest();
-        client.writeMessage(peerRequestMessage);
+        clientMessageQueue.add(peerRequestMessage);
         LOGGER.log(Level.INFO, "Requesting peer id to server...");
     }
 
@@ -196,11 +205,15 @@ public class Peer implements ICommunicationListener, Runnable {
 
     @Override
     public void OnClientConnectedToServer() {
+        clientIsConnected = true;
+
         LOGGER.log(Level.INFO, "Client connected to a server!");
     }
 
     @Override
     public void OnClientDisconnected() {
+        clientIsConnected = false;
+
         LOGGER.log(Level.INFO, "Client has disconnected!");
     }
 
@@ -290,7 +303,7 @@ public class Peer implements ICommunicationListener, Runnable {
                 int assignedId = -1;
                 String assignedAddress = "";
                 int assignedPort = -1;
-                
+
                 for (int i = 0; i < availablePeerIds.size(); i++) {
                     assignedId = availablePeerIds.get(i);
                     server.writeMessage(MessageParser.CreatePeerIDMessage(assignedId));
@@ -298,20 +311,18 @@ public class Peer implements ICommunicationListener, Runnable {
                     availablePeerIds.remove(i);
                     break;
                 }
-                
+
                 break;
-                
-           case Constants.MSG_JOIN:
-                
-                
+
+            case Constants.MSG_JOIN:
+
                 PeerReference newRef = (PeerReference) recievedMsg;
-                
-                if(AddPeerReference(newRef))
-                {
-                     LOGGER.log(Level.INFO, "Added peer reference {0}", newRef);
+
+                if (AddPeerReference(newRef)) {
+                    LOGGER.log(Level.INFO, "Added peer reference {0}", newRef);
                     break;
                 }
-                
+
                 LOGGER.log(Level.INFO, "Unable to add peer reference {0}", newRef);
                 //Failed to add reference to this peer, go to next peer!
                 break;
