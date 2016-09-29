@@ -62,21 +62,7 @@ public class Peer implements ICommunicationListener, Runnable {
         server.AddListener(this);
         client.AddListener(this);
 
-        Thread serverThread = new Thread(server);
-        Thread clientThread = new Thread(client);
-
-        //Start Threads
-        serverThread.start();
-
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException ex) {
-            LOGGER.log(Level.SEVERE, null, ex);
-        }
-
-        clientThread.start();
-
-        while (!server.isReady()) {
+        while (!server.RunnablesHaveStopped()) {
             //
         }
     }
