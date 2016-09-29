@@ -6,6 +6,8 @@
 package p2pnetwork;
 
 import Util.Constants;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.DefaultListModel;
 
 /**
@@ -16,11 +18,14 @@ public class Application extends javax.swing.JFrame {
 
     private DefaultListModel model;
     private int lastSelectedIndex;
+    private final List<Peer> peerList;
 
     /**
      * Creates new form Application
      */
     public Application() {
+
+        peerList = new ArrayList<>();
 
         initComponents();
 
@@ -38,10 +43,24 @@ public class Application extends javax.swing.JFrame {
         Thread peerThread = new Thread(peer);
         peerThread.start();
 
+        peerList.add(peer);
+
         model = new DefaultListModel();
-        model.add(0, peer);
 
         list_peerList.setModel(model);
+
+        UpdatePeerListData();
+    }
+
+    private void UpdatePeerListData() {
+        model.clear();
+
+        for (int i = 0; i < peerList.size(); i++) {
+            Peer peer = peerList.get(i);
+            String displayName = "Peer " + peer.getId() + " references= " + peer.peerReferences.toString();
+
+            model.add(i, displayName);
+        }
     }
 
     /**
@@ -60,6 +79,7 @@ public class Application extends javax.swing.JFrame {
         label_Port = new javax.swing.JLabel();
         label_Address = new javax.swing.JLabel();
         label_ID = new javax.swing.JLabel();
+        button_Refresh = new javax.swing.JToggleButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -91,6 +111,13 @@ public class Application extends javax.swing.JFrame {
 
         label_ID.setText("jLabel2");
 
+        button_Refresh.setText("Refresh List");
+        button_Refresh.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                button_RefreshActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -104,7 +131,9 @@ public class Application extends javax.swing.JFrame {
                             .addComponent(buton_AddPeer, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(label_Port, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(field_Port))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 161, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(button_Refresh, javax.swing.GroupLayout.DEFAULT_SIZE, 145, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addComponent(label_Address, javax.swing.GroupLayout.DEFAULT_SIZE, 142, Short.MAX_VALUE)
                             .addComponent(label_ID, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
@@ -119,7 +148,9 @@ public class Application extends javax.swing.JFrame {
                 .addComponent(label_Address, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(buton_AddPeer)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(buton_AddPeer)
+                        .addComponent(button_Refresh))
                     .addComponent(label_ID))
                 .addGap(1, 1, 1)
                 .addComponent(label_Port)
@@ -145,12 +176,13 @@ public class Application extends javax.swing.JFrame {
         Thread peerThread = new Thread(newPeer);
         peerThread.start();
 
-        model.add(list_peerList.getComponentCount(), newPeer);
-        
-        
+        peerList.add(newPeer);
+
         int portNumber = Integer.parseInt(field_Port.getText());
         portNumber++;
         field_Port.setText(Integer.toString(portNumber));
+
+        UpdatePeerListData();
     }//GEN-LAST:event_buton_AddPeerActionPerformed
 
     private void list_peerListValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_list_peerListValueChanged
@@ -163,13 +195,18 @@ public class Application extends javax.swing.JFrame {
         int index = evt.getLastIndex() == lastSelectedIndex ? evt.getFirstIndex() : evt.getLastIndex();
 
         lastSelectedIndex = index;
-        Peer selectedPeer = (Peer) model.get(lastSelectedIndex);
+        Peer selectedPeer = peerList.get(lastSelectedIndex);
 
         label_Address.setText(selectedPeer.getAddress());
         label_ID.setText(Integer.toString(selectedPeer.getId()));
 
         System.out.println("Selected" + selectedPeer.toString());
     }//GEN-LAST:event_list_peerListValueChanged
+
+    private void button_RefreshActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_button_RefreshActionPerformed
+
+        UpdatePeerListData();
+    }//GEN-LAST:event_button_RefreshActionPerformed
 
     /**
      * @param args the command line arguments
@@ -208,6 +245,7 @@ public class Application extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton buton_AddPeer;
+    private javax.swing.JToggleButton button_Refresh;
     private javax.swing.JTextField field_Port;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JLabel label_Address;

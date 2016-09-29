@@ -33,7 +33,9 @@
                           <Component id="label_Port" alignment="0" max="32767" attributes="0"/>
                           <Component id="field_Port" alignment="0" max="32767" attributes="0"/>
                       </Group>
-                      <EmptySpace pref="161" max="32767" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="button_Refresh" pref="145" max="32767" attributes="0"/>
+                      <EmptySpace type="unrelated" max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="0" max="-2" attributes="0">
                           <Component id="label_Address" pref="142" max="32767" attributes="0"/>
                           <Component id="label_ID" max="32767" attributes="0"/>
@@ -53,7 +55,10 @@
               <Component id="label_Address" max="32767" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
-                  <Component id="buton_AddPeer" min="-2" max="-2" attributes="0"/>
+                  <Group type="103" groupAlignment="3" attributes="0">
+                      <Component id="buton_AddPeer" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="button_Refresh" alignment="3" min="-2" max="-2" attributes="0"/>
+                  </Group>
                   <Component id="label_ID" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace min="-2" pref="1" max="-2" attributes="0"/>
@@ -122,6 +127,14 @@
       <Properties>
         <Property name="text" type="java.lang.String" value="jLabel2"/>
       </Properties>
+    </Component>
+    <Component class="javax.swing.JToggleButton" name="button_Refresh">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Refresh List"/>
+      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="button_RefreshActionPerformed"/>
+      </Events>
     </Component>
   </SubComponents>
 </Form>

@@ -33,7 +33,7 @@ public class Peer implements ICommunicationListener, Runnable {
     private final int port;
 
     private final List<Byte> availablePeerIds;
-    private final List<PeerReference> peerReferences;
+    public final List<PeerReference> peerReferences;
 
     private final ConcurrentLinkedQueue<Message> clientMessageQueue;
 
