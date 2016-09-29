@@ -208,7 +208,7 @@ public class Application extends javax.swing.JFrame {
 
         int index = evt.getLastIndex() == lastSelectedIndex ? evt.getFirstIndex() : evt.getLastIndex();
 
-        lastSelectedIndex = Math.min(index, peerList.size());
+        lastSelectedIndex = Math.min(index, peerList.size() - 1);
         Peer selectedPeer = peerList.get(lastSelectedIndex);
 
         label_Address_Value.setText(selectedPeer.getAddress());
