@@ -1,6 +1,7 @@
 package communication;
 
 import Interfaces.ICommunicationListener;
+import Interfaces.IMessage;
 import Util.Constants;
 import Util.MessageParser;
 import data.Message;
@@ -148,7 +149,7 @@ public class Server implements Runnable {
         return listenRunnable == null || sendRunnable == null || !listenRunnable.isRunning() || !sendRunnable.isRunning();
     }
 
-    public Message getMessage() {
+    public IMessage getMessage() {
         return MessageParser.DecodeJSON(listenRunnable.getRawMessage());
     }
 
@@ -176,7 +177,7 @@ public class Server implements Runnable {
         return isRunning() && !RunnablesHaveStopped();
     }
 
-    public void writeMessage(Message message) {
+    public void writeMessage(IMessage message) {
 
         JSONObject jsonObj = new JSONObject(message);
 

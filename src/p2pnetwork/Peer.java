@@ -1,6 +1,7 @@
 package p2pnetwork;
 
 import Interfaces.ICommunicationListener;
+import Interfaces.IMessage;
 import Util.Constants;
 import Util.MessageParser;
 import communication.Server;
@@ -47,7 +48,11 @@ public class Peer implements ICommunicationListener, Runnable {
         this.peerID = peerID;
         this.port = port;
 
-        this.peerReferences = new ArrayList<>(4);
+        this.peerReferences = new ArrayList<>();
+
+        for (int i = 0; i < Constants.INITIAL_HASHMAP_SIZE; i++) {
+            peerReferences.add(null);
+        }
 
     }
 
@@ -103,10 +108,6 @@ public class Peer implements ICommunicationListener, Runnable {
 
     private boolean AddPeerReference(PeerReference newPR) {
 
-        if (peerReferences.size() == Constants.INITIAL_HASHMAP_SIZE) {
-            return false;
-        }
-
         for (int i = 0; i < peerReferences.size(); i++) {
             PeerReference curRef = peerReferences.get(i);
 
@@ -121,25 +122,26 @@ public class Peer implements ICommunicationListener, Runnable {
 
         return false;
     }
-    
-    public void ConnectToId(int id)
-    {
-        if(HasPeerReferenceId(id))
-        {
+
+    public void ConnectToId(int id) {
+        if (HasPeerReferenceId(id)) {
             ConnectToId(id);
             return;
         }
-        
+
         PeerReference nextPR = FindShortestAvailablePeerRef();
         ConnectToPeerId(nextPR.getId());
-        
+
         clientMessageQueue.add(new Message("Yoo peer " + nextPR.getId() + ", im looking for id " + id));
     }
 
     /**
-     * Will try to connect to a peer if it has been found in the peerreference list of this peer.
+     * Will try to connect to a peer if it has been found in the peerreference
+     * list of this peer.
+     *
      * @param id id to connect to
-     * @return True if it was able to connect right away, false if the peerreference was not found.
+     * @return True if it was able to connect right away, false if the
+     * peerreference was not found.
      */
     private boolean ConnectToPeerId(int id) {
         for (int i = 0; i < peerReferences.size(); i++) {
@@ -147,7 +149,7 @@ public class Peer implements ICommunicationListener, Runnable {
 
             if (peerRef.getId() == id) {
                 ConnectToPeer(peerRef.getAddress(), peerRef.getPortNumber());
-                
+
                 clientMessageQueue.add(new Message("HELLO FROM " + peerID));
                 return true;
             }
@@ -156,42 +158,44 @@ public class Peer implements ICommunicationListener, Runnable {
 
         return false;
     }
-    
-    private boolean HasPeerReferenceId(int id)
-    {
+
+    private boolean HasPeerReferenceId(int id) {
         for (int i = 0; i < peerReferences.size(); i++) {
             PeerReference peerRef = peerReferences.get(i);
-            
-            if(peerRef == null) continue;
-            
-            if(peerRef.getId() == id)
+
+            if (peerRef == null) {
+                continue;
+            }
+
+            if (peerRef.getId() == id) {
                 return true;
+            }
         }
-        
+
         return false;
     }
-    
-    private PeerReference FindShortestAvailablePeerRef()
-    {
+
+    private PeerReference FindShortestAvailablePeerRef() {
         int shortestDistanceIndex = -1;
         int shortestDist = Constants.P2PSIZE + 1;
-        
+
         for (int i = 0; i < peerReferences.size(); i++) {
             PeerReference peerRef = peerReferences.get(i);
-            
-            if(peerRef == null) continue;
-            
+
+            if (peerRef == null) {
+                continue;
+            }
+
             int dist = CalculateDistance(peerID, peerRef.getId());
-            
-            if(dist < shortestDist)
-            {
+
+            if (dist < shortestDist) {
                 shortestDist = dist;
                 shortestDistanceIndex = i;
             }
         }
-        
+
         return shortestDistanceIndex == -1 ? null : peerReferences.get(shortestDistanceIndex);
-        
+
     }
 
     private int CalculateDistance(int srcID, int destID) {
@@ -219,12 +223,13 @@ public class Peer implements ICommunicationListener, Runnable {
     public void JoinNetworkWithIP(String ipAdress, int port) {
         client.SetupConnection(ipAdress, port);
 
-        /*while (!client.isReady()) {
-            //
-        }*/
         if (peerID == Constants.DISCONNECTED_PEERID) {
             RequestPeerId();
         }
+
+        Message JoinPeerMsg = MessageParser.CreateJoinPeerMessage(peerID, getAddress(), getPort());
+
+        clientMessageQueue.add(JoinPeerMsg);
     }
 
     private void Stop() {
@@ -257,6 +262,10 @@ public class Peer implements ICommunicationListener, Runnable {
 
     public int getId() {
         return (int) peerID;
+    }
+
+    public int getPort() {
+        return port;
     }
 
     public String getAddress() {
@@ -295,7 +304,7 @@ public class Peer implements ICommunicationListener, Runnable {
     @Override
     public void OnClientRecievedMessage() {
 
-        Message recievedMsg = client.getMessage();
+        IMessage recievedMsg = client.getMessage();
 
         switch (recievedMsg.getMessageType()) {
             case Constants.MSG_MESSAGE:
@@ -320,6 +329,13 @@ public class Peer implements ICommunicationListener, Runnable {
             case Constants.MSG_QUIT:
                 LOGGER.log(Level.SEVERE, "Client recieved quit command!");
                 Stop();
+                break;
+
+            case Constants.MSG_JOIN:
+
+                //After succesfully recieved an ACK from joining -> Disconnect
+                DisconnectPeerFromOtherPeer();
+
                 break;
         }
     }
@@ -347,7 +363,7 @@ public class Peer implements ICommunicationListener, Runnable {
     @Override
     public void OnServerRecievedMessage() {
 
-        Message recievedMsg = server.getMessage();
+        IMessage recievedMsg = server.getMessage();
 
         switch (recievedMsg.getMessageType()) {
             case Constants.MSG_MESSAGE:
@@ -381,10 +397,16 @@ public class Peer implements ICommunicationListener, Runnable {
 
             case Constants.MSG_JOIN:
 
+                if (recievedMsg instanceof PeerReference) {
+                    LOGGER.log(Level.INFO, "CORREC");
+                }
+
                 PeerReference newRef = (PeerReference) recievedMsg;
 
                 if (AddPeerReference(newRef)) {
                     LOGGER.log(Level.INFO, "Added peer reference {0}", newRef);
+
+                    server.writeMessage(recievedMsg);
                     break;
                 }
 

@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import Interfaces.ICommunicationListener;
+import Interfaces.IMessage;
 import Util.MessageParser;
 import data.Message;
 import org.json.JSONObject;
@@ -149,7 +150,7 @@ public class Client implements Runnable {
         running = false;
     }
 
-    public Message getMessage() {
+    public IMessage getMessage() {
         return MessageParser.DecodeJSON(listenRunnable.getRawMessage());
     }
 
@@ -172,7 +173,7 @@ public class Client implements Runnable {
         sendRunnable.writeMessage(jsonObj);
     }
 
-    public void writeMessage(Message message) {
+    public void writeMessage(IMessage message) {
 
         JSONObject jsonObj = new JSONObject(message);
 

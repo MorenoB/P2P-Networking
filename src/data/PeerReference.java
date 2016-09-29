@@ -1,12 +1,13 @@
 package data;
 
+import Interfaces.IMessage;
 import Util.Constants;
 
 /**
  *
  * @author Moreno
  */
-public class PeerReference extends Message{
+public class PeerReference extends Message implements IMessage{
     
     private final int Id;
     private final String address;
@@ -29,6 +30,16 @@ public class PeerReference extends Message{
 
     public int getPortNumber() {
         return portNumber;
+    }
+
+    @Override
+    public int getMessageType() {
+        return messageType;
+    }
+
+    @Override
+    public String getMsg() {
+        return msg;
     }
     
     

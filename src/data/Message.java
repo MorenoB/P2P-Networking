@@ -1,13 +1,14 @@
 package data;
 
+import Interfaces.IMessage;
 import Util.Constants;
 
-public class Message {
+public class Message implements IMessage{
 
-    private static int counter = 0;
-    private final int messageType;
-    private final int id;
-    private String msg;
+    protected static int counter = 0;
+    protected final int messageType;
+    protected final int id;
+    protected String msg;
     
     public Message(int messageType, int id)
     {
@@ -30,21 +31,22 @@ public class Message {
         this.msg = msg;
     }
 
-    public int getMessageType() {
-        return messageType;
-    }
-
     public int getId() {
         return id;
-    }
-    
-    public String getMsg()
-    {
-        return msg;
     }
     
     public void setMsg(String msg)
     {
         this.msg = msg;
+    }
+    
+    @Override
+    public int getMessageType() {
+        return messageType;
+    }
+    
+    @Override
+    public String getMsg() {
+        return msg;
     }
 }
