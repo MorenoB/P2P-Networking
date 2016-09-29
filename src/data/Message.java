@@ -1,5 +1,7 @@
 package data;
 
+import Util.Constants;
+
 public class Message {
 
     private static int counter = 0;
@@ -17,6 +19,15 @@ public class Message {
         this.messageType = messageType;
         counter += 1;
         this.id = counter;
+    }
+    
+    public Message(String msg)
+    {
+        this.messageType = Constants.MSG_MESSAGE;
+        counter += 1;
+        this.id = counter;
+        
+        this.msg = msg;
     }
 
     public int getMessageType() {

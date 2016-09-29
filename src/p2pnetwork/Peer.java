@@ -121,6 +121,78 @@ public class Peer implements ICommunicationListener, Runnable {
 
         return false;
     }
+    
+    public void ConnectToId(int id)
+    {
+        if(HasPeerReferenceId(id))
+        {
+            ConnectToId(id);
+            return;
+        }
+        
+        PeerReference nextPR = FindShortestAvailablePeerRef();
+        ConnectToPeerId(nextPR.getId());
+        
+        clientMessageQueue.add(new Message("Yoo peer " + nextPR.getId() + ", im looking for id " + id));
+    }
+
+    /**
+     * Will try to connect to a peer if it has been found in the peerreference list of this peer.
+     * @param id id to connect to
+     * @return True if it was able to connect right away, false if the peerreference was not found.
+     */
+    private boolean ConnectToPeerId(int id) {
+        for (int i = 0; i < peerReferences.size(); i++) {
+            PeerReference peerRef = peerReferences.get(i);
+
+            if (peerRef.getId() == id) {
+                ConnectToPeer(peerRef.getAddress(), peerRef.getPortNumber());
+                
+                clientMessageQueue.add(new Message("HELLO FROM " + peerID));
+                return true;
+            }
+
+        }
+
+        return false;
+    }
+    
+    private boolean HasPeerReferenceId(int id)
+    {
+        for (int i = 0; i < peerReferences.size(); i++) {
+            PeerReference peerRef = peerReferences.get(i);
+            
+            if(peerRef == null) continue;
+            
+            if(peerRef.getId() == id)
+                return true;
+        }
+        
+        return false;
+    }
+    
+    private PeerReference FindShortestAvailablePeerRef()
+    {
+        int shortestDistanceIndex = -1;
+        int shortestDist = Constants.P2PSIZE + 1;
+        
+        for (int i = 0; i < peerReferences.size(); i++) {
+            PeerReference peerRef = peerReferences.get(i);
+            
+            if(peerRef == null) continue;
+            
+            int dist = CalculateDistance(peerID, peerRef.getId());
+            
+            if(dist < shortestDist)
+            {
+                shortestDist = dist;
+                shortestDistanceIndex = i;
+            }
+        }
+        
+        return shortestDistanceIndex == -1 ? null : peerReferences.get(shortestDistanceIndex);
+        
+    }
 
     private int CalculateDistance(int srcID, int destID) {
         int result = Math.floorMod(destID - srcID + Constants.P2PSIZE, Constants.P2PSIZE);
@@ -160,13 +232,6 @@ public class Peer implements ICommunicationListener, Runnable {
         server.Stop();
 
         isRunning = false;
-    }
-
-    private void JoinNetworkWithPeerId(byte peerId) {
-        //When peers join a network, they are getting a peer id
-        SetID(peerId);
-
-        LOGGER.log(Level.INFO, "Peer id set to {0}", peerId);
     }
 
     private void DisconnectFromNetwork() {
