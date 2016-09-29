@@ -1,6 +1,7 @@
 package Util;
 
 import data.Message;
+import data.PeerReference;
 import org.json.JSONObject;
 
 /**
@@ -37,6 +38,15 @@ public final class MessageParser {
         Message message = new Message(Constants.MSG_REQUEST_PEERID);
         
         message.setMsg("IHRE PEER ID BITTE!");
+        
+        return message;
+    }
+    
+    public static PeerReference CreateJoinPeerMessage(int id, String address, int port)
+    {
+        PeerReference message = new PeerReference(id, address, port);
+        
+        message.setMsg("Joining peer request.");
         
         return message;
     }

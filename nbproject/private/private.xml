@@ -3,16 +3,18 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
+            <file>file:/C:/Projects/P2PNetworking/src/data/PeerReference.java</file>
             <file>file:/C:/Projects/P2PNetworking/src/Util/Constants.java</file>
+            <file>file:/C:/Projects/P2PNetworking/src/data/Message.java</file>
             <file>file:/C:/Projects/P2PNetworking/src/p2pnetwork/Main.java</file>
             <file>file:/C:/Projects/P2PNetworking/src/communication/Server.java</file>
             <file>file:/C:/Projects/P2PNetworking/src/communication/SendRunnable.java</file>
+            <file>file:/C:/Projects/P2PNetworking/src/p2pnetwork/Application.java</file>
             <file>file:/C:/Projects/P2PNetworking/src/Interfaces/ICommunicationListener.java</file>
             <file>file:/C:/Projects/P2PNetworking/src/Util/MessageParser.java</file>
             <file>file:/C:/Projects/P2PNetworking/src/p2pnetwork/Peer.java</file>
             <file>file:/C:/Projects/P2PNetworking/src/communication/ListenRunnable.java</file>
             <file>file:/C:/Projects/P2PNetworking/src/communication/Client.java</file>
-            <file>file:/C:/Projects/P2PNetworking/src/communication/messages/Message.java</file>
         </group>
     </open-files>
 </project-private>

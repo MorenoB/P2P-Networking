@@ -161,6 +161,7 @@ public class Peer implements ICommunicationListener, Runnable {
         //When peers join a network, they are getting a peer id
         SetID(Constants.DISCONNECTED_PEERID);
 
+        
         LOGGER.log(Level.INFO, "Peer is disconnected! Peer id set to {0}", Constants.DISCONNECTED_PEERID);
     }
 
@@ -298,16 +299,20 @@ public class Peer implements ICommunicationListener, Runnable {
                 
                 break;
                 
-           /* case Constants.MSG_JOIN:
+           case Constants.MSG_JOIN:
                 
                 
-                PeerReference newRef = new PeerReference(assignedId, assignedAddress, assignedPort);
+                PeerReference newRef = (PeerReference) recievedMsg;
                 
                 if(AddPeerReference(newRef))
+                {
+                     LOGGER.log(Level.INFO, "Added peer reference {0}", newRef);
                     break;
+                }
                 
+                LOGGER.log(Level.INFO, "Unable to add peer reference {0}", newRef);
                 //Failed to add reference to this peer, go to next peer!
-                break;*/
+                break;
         }
     }
 
