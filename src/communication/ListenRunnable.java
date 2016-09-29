@@ -32,14 +32,15 @@ class ListenRunnable implements Runnable {
     @Override
     public void run() {
         String inputLine;
-        
+
         running = true;
 
         try {
             while (running) {
-                
-                if((inputLine = in.readLine()) == null)
+
+                if ((inputLine = in.readLine()) == null) {
                     continue;
+                }
 
                 LOGGER.log(Level.INFO, name + " Recieved {0}", inputLine);
 
@@ -57,9 +58,10 @@ class ListenRunnable implements Runnable {
                 }
             }
         } catch (IOException e) {
-            
-            if(running)
+
+            if (running) {
                 LOGGER.log(Level.SEVERE, name, e);
+            }
         }
         running = false;
     }
@@ -72,8 +74,15 @@ class ListenRunnable implements Runnable {
         listeners.add(listener);
     }
 
-    public void stop() {
+    public void Stop() {
         LOGGER.log(Level.INFO, "{0} stopping Listen Runnable...", name);
+
+        try {
+            in.close();
+        } catch (IOException ex) {
+            LOGGER.log(Level.SEVERE, null, ex);
+        }
+
         running = false;
     }
 
