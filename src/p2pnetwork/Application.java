@@ -57,7 +57,7 @@ public class Application extends javax.swing.JFrame {
 
         for (int i = 0; i < peerList.size(); i++) {
             Peer peer = peerList.get(i);
-            String displayName = "Peer " + peer.getId() + " references= " + peer.peerReferences.toString();
+            String displayName = "Peer " + peer.getId() + " references= " + peer.getPeerReferences();
 
             model.add(i, displayName);
         }

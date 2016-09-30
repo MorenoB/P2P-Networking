@@ -36,7 +36,7 @@ public class Peer implements ICommunicationListener, Runnable {
     private int connectionRetries;
 
     private final List<Byte> availablePeerIds;
-    public final List<PeerReference> peerReferences;
+    private final List<PeerReference> peerReferences;
 
     private final ConcurrentLinkedQueue<Message> clientMessageQueue;
 
@@ -283,6 +283,19 @@ public class Peer implements ICommunicationListener, Runnable {
 
     public String getAddress() {
         return server.getAddress();
+    }
+    
+    public String getPeerReferences()
+    {
+        String readablePeerReferences = "";
+        for (int i = 0; i < peerReferences.size(); i++) {
+             PeerReference peerRef = peerReferences.get(i);
+             
+            
+            readablePeerReferences += peerRef == null ? " [NULL] " : " [" + peerRef.getId() + "] ";
+        }
+        
+        return readablePeerReferences;
     }
 
     @Override
