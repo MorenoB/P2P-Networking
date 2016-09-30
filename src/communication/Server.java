@@ -56,8 +56,14 @@ public class Server implements Runnable {
         running = true;
 
         while (running) {
+                         
+            try {
+                Thread.sleep(Constants.CYCLEWAIT);
+            } catch (InterruptedException ex) {
+                LOGGER.log(Level.SEVERE, null, ex);
+            }
 
-            if (connectedSocket == null || !connectedSocket.isConnected()) {
+            if (connectedSocket == null ) {
                 ListenForConnection();
             }
 
@@ -66,11 +72,6 @@ public class Server implements Runnable {
                 LOGGER.log(Level.SEVERE, "ListenRunnable/SendRunnable stopped running! Shutting down connection...");
                 StopConnection();
             }*/
-            try {
-                Thread.sleep(Constants.CYCLEWAIT);
-            } catch (InterruptedException ex) {
-                LOGGER.log(Level.SEVERE, null, ex);
-            }
         }
     }
 
@@ -88,7 +89,7 @@ public class Server implements Runnable {
 
     private void ListenForConnection() {
         try {
-            LOGGER.log(Level.INFO, "Waiting for client");
+            LOGGER.log(Level.INFO, "Server waiting for client");
 
             connectedSocket = serverSocket.accept();
 
@@ -100,8 +101,8 @@ public class Server implements Runnable {
             listenRunnable.UpdateListeners(listeners);
             sendRunnable.UpdateListeners(listeners);
 
-            Thread listenThread = new Thread(listenRunnable);
-            Thread sendThread = new Thread(sendRunnable);
+            Thread listenThread = new Thread(listenRunnable, "Server-ListenRunnable");
+            Thread sendThread = new Thread(sendRunnable, "Server-SendRunnable");
 
             listenThread.start();
             sendThread.start();
@@ -134,7 +135,12 @@ public class Server implements Runnable {
         } catch (Throwable e) {
         }
         try {
-            connectedSocket.close();
+            serverSocket.close();
+            
+            if(connectedSocket != null)
+                connectedSocket.close();
+            
+            connectedSocket = null;
         } catch (IOException e) {
             LOGGER.log(Level.SEVERE, null, e);
         }

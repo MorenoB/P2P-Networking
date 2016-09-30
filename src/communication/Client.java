@@ -71,9 +71,9 @@ public class Client implements Runnable {
         return hasConnection;
     }
 
-    public void SetupConnection(String host, int port) {
+    public boolean SetupConnection(String host, int port) {
         if (hasConnection) {
-            return;
+            return false;
         }
 
         try {
@@ -92,12 +92,13 @@ public class Client implements Runnable {
             listenRunnable.UpdateListeners(listeners);
             sendRunnable.UpdateListeners(listeners);
 
-            Thread listenThread = new Thread(listenRunnable);
-            Thread sendThread = new Thread(sendRunnable);
+            Thread listenThread = new Thread(listenRunnable, "Client-ListenRunnable");
+            Thread sendThread = new Thread(sendRunnable, "Client-SendRunnable");
 
             listenThread.start();
             sendThread.start();
-
+            
+            return true;
         } catch (IOException ex) {
 
             listeners.stream().forEach((sl) -> {
@@ -105,7 +106,9 @@ public class Client implements Runnable {
             });
 
             hasConnection = false;
-            LOGGER.log(Level.SEVERE, null, ex);
+            LOGGER.log(Level.SEVERE, "Client failed to connect to server!");
+            
+            return false;
         }
 
     }

@@ -15,6 +15,8 @@ public final class Constants {
     public static final int P2PSIZE = 16;
     public static final byte INITIAL_HASHMAP_SIZE = 4;
     
+    public static final int MAX_CONNECTION_RETRIES = 4;
+    
     
     //Message types
     public static final int MSG_QUIT = 1;

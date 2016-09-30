@@ -32,6 +32,8 @@ public class Peer implements ICommunicationListener, Runnable {
     private boolean bootPeer;
     private int peerID;
     private final int port;
+    
+    private int connectionRetries;
 
     private final List<Byte> availablePeerIds;
     public final List<PeerReference> peerReferences;
@@ -74,8 +76,8 @@ public class Peer implements ICommunicationListener, Runnable {
         server.AddListener(this);
         client.AddListener(this);
 
-        Thread serverThread = new Thread(server);
-        Thread clientThread = new Thread(client);
+        Thread serverThread = new Thread(server, "ServerThead");
+        Thread clientThread = new Thread(client, "ClientThread");
 
         //Start Threads
         serverThread.start();
@@ -221,7 +223,18 @@ public class Peer implements ICommunicationListener, Runnable {
     }
 
     public void JoinNetworkWithIP(String ipAdress, int port) {
-        client.SetupConnection(ipAdress, port);
+        
+        if(!client.SetupConnection(ipAdress, port) && connectionRetries < Constants.MAX_CONNECTION_RETRIES)
+        {
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException ex) {
+                LOGGER.log(Level.SEVERE, null, ex);
+            }
+            connectionRetries++;
+            JoinNetworkWithIP(ipAdress, port);
+            return;
+        }
 
         if (peerID == Constants.DISCONNECTED_PEERID) {
             RequestPeerId();
@@ -381,12 +394,8 @@ public class Peer implements ICommunicationListener, Runnable {
 
             case Constants.MSG_REQUEST_PEERID:
 
-                int assignedId = -1;
-                String assignedAddress = "";
-                int assignedPort = -1;
-
                 for (int i = 0; i < availablePeerIds.size(); i++) {
-                    assignedId = availablePeerIds.get(i);
+                    int assignedId = availablePeerIds.get(i);
                     server.writeMessage(MessageParser.CreatePeerIDMessage(assignedId));
 
                     availablePeerIds.remove(i);
@@ -396,10 +405,6 @@ public class Peer implements ICommunicationListener, Runnable {
                 break;
 
             case Constants.MSG_JOIN:
-
-                if (recievedMsg instanceof PeerReference) {
-                    LOGGER.log(Level.INFO, "CORREC");
-                }
 
                 PeerReference newRef = (PeerReference) recievedMsg;
 
@@ -420,6 +425,13 @@ public class Peer implements ICommunicationListener, Runnable {
     public void run() {
 
         while (isRunning) {
+                            
+            try {
+                Thread.sleep(Constants.CYCLEWAIT);
+            } catch (InterruptedException ex) {
+                LOGGER.log(Level.SEVERE, null, ex);
+            }
+            
             Update();
         }
     }

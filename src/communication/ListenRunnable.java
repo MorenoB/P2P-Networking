@@ -1,6 +1,7 @@
 package communication;
 
 import Interfaces.ICommunicationListener;
+import Util.Constants;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -37,7 +38,7 @@ class ListenRunnable implements Runnable {
 
         try {
             while (running) {
-
+                
                 if ((inputLine = in.readLine()) == null) {
                     continue;
                 }
@@ -84,6 +85,8 @@ class ListenRunnable implements Runnable {
         }
 
         running = false;
+        
+        Thread.currentThread().stop();
     }
 
     public String getRawMessage() {
