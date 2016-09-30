@@ -128,14 +128,18 @@ public class Peer implements ICommunicationListener, Runnable {
 
     public void ConnectToId(int id) {
         if (HasPeerReferenceId(id)) {
-            ConnectToId(id);
+            ConnectToPeerId(id);
             return;
         }
 
         PeerReference nextPR = FindShortestAvailablePeerRef();
         ConnectToPeerId(nextPR.getId());
+        
+        PeerReference sourcePeerRef = new PeerReference(peerID, getAddress(), getPort());
+        
+        Search searchRequestMsg = MessageParser.CreateSearchPeerMessage(sourcePeerRef, id);
 
-        clientMessageQueue.add(new Message("Yoo peer " + nextPR.getId() + ", im looking for id " + id));
+        clientMessageQueue.add(searchRequestMsg);
     }
 
     /**

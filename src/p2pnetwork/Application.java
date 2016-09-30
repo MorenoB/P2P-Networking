@@ -19,6 +19,8 @@ public class Application extends javax.swing.JFrame {
     private DefaultListModel model;
     private int lastSelectedIndex;
     private final List<Peer> peerList;
+    
+    private Peer selectedPeer;
 
     /**
      * Creates new form Application
@@ -82,6 +84,8 @@ public class Application extends javax.swing.JFrame {
         button_Refresh = new javax.swing.JToggleButton();
         label_id = new javax.swing.JLabel();
         label_address = new javax.swing.JLabel();
+        button_JoinPeerId = new javax.swing.JButton();
+        textfield_PeerId = new javax.swing.JTextField();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -124,6 +128,15 @@ public class Application extends javax.swing.JFrame {
 
         label_address.setText("Address");
 
+        button_JoinPeerId.setText("Join Peer ID");
+        button_JoinPeerId.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                button_JoinPeerIdActionPerformed(evt);
+            }
+        });
+
+        textfield_PeerId.setText("0");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -132,13 +145,19 @@ public class Application extends javax.swing.JFrame {
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jScrollPane1)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(buton_AddPeer, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(label_Port, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(field_Port))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(button_Refresh, javax.swing.GroupLayout.DEFAULT_SIZE, 105, Short.MAX_VALUE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                                .addComponent(button_JoinPeerId)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(textfield_PeerId))
+                            .addGroup(layout.createSequentialGroup()
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                    .addComponent(buton_AddPeer, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(label_Port, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(field_Port))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(button_Refresh, javax.swing.GroupLayout.DEFAULT_SIZE, 105, Short.MAX_VALUE)))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(label_id, javax.swing.GroupLayout.PREFERRED_SIZE, 57, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -170,7 +189,11 @@ public class Application extends javax.swing.JFrame {
                 .addComponent(label_Port)
                 .addGap(3, 3, 3)
                 .addComponent(field_Port, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(92, 92, 92))
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(button_JoinPeerId)
+                    .addComponent(textfield_PeerId, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(51, 51, 51))
         );
 
         pack();
@@ -209,7 +232,7 @@ public class Application extends javax.swing.JFrame {
         int index = evt.getLastIndex() == lastSelectedIndex ? evt.getFirstIndex() : evt.getLastIndex();
 
         lastSelectedIndex = Math.min(index, peerList.size() - 1);
-        Peer selectedPeer = peerList.get(lastSelectedIndex);
+        selectedPeer = peerList.get(lastSelectedIndex);
 
         label_Address_Value.setText(selectedPeer.getAddress());
         label_ID_value.setText(Integer.toString(selectedPeer.getId()));
@@ -221,6 +244,10 @@ public class Application extends javax.swing.JFrame {
 
         UpdatePeerListData();
     }//GEN-LAST:event_button_RefreshActionPerformed
+
+    private void button_JoinPeerIdActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_button_JoinPeerIdActionPerformed
+        selectedPeer.ConnectToId(Integer.parseInt(textfield_PeerId.getText()));
+    }//GEN-LAST:event_button_JoinPeerIdActionPerformed
 
     /**
      * @param args the command line arguments
@@ -259,6 +286,7 @@ public class Application extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton buton_AddPeer;
+    private javax.swing.JButton button_JoinPeerId;
     private javax.swing.JToggleButton button_Refresh;
     private javax.swing.JTextField field_Port;
     private javax.swing.JScrollPane jScrollPane1;
@@ -268,5 +296,6 @@ public class Application extends javax.swing.JFrame {
     private javax.swing.JLabel label_address;
     private javax.swing.JLabel label_id;
     private javax.swing.JList<String> list_peerList;
+    private javax.swing.JTextField textfield_PeerId;
     // End of variables declaration//GEN-END:variables
 }
