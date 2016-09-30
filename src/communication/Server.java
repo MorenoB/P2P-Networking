@@ -128,10 +128,20 @@ public class Server implements Runnable {
 
         try {
             listenRunnable.Stop();
+            
+            while(listenRunnable.isRunning())
+            {
+                //
+            }
         } catch (Throwable e) {
         }
         try {
             sendRunnable.Stop();
+            
+            while(sendRunnable.isRunning())
+            {
+                //
+            }
         } catch (Throwable e) {
         }
         try {
