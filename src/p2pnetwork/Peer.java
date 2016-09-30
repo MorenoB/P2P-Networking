@@ -334,7 +334,7 @@ public class Peer implements ICommunicationListener, Runnable {
                 Byte recievedId = Byte.parseByte(recievedString);
                 SetID(recievedId);
 
-                DisconnectPeerFromOtherPeer();
+                //DisconnectPeerFromOtherPeer();
 
                 LOGGER.log(Level.INFO, "Client recieved peer id = {0}", recievedString);
                 break;
@@ -366,6 +366,9 @@ public class Peer implements ICommunicationListener, Runnable {
     @Override
     public void OnServerError() {
         LOGGER.log(Level.SEVERE, "Server has an error!");
+        
+        if(server != null)
+            server.StopConnection();
     }
 
     @Override

@@ -30,6 +30,8 @@ public class Server implements Runnable {
 
     private boolean running;
 
+    private int port;
+    
     private ListenRunnable listenRunnable;
     private SendRunnable sendRunnable;
 
@@ -37,15 +39,7 @@ public class Server implements Runnable {
 
     public Server(int port) {
 
-        try {
-            serverSocket = new ServerSocket(port);
-        } catch (IOException ex) {
-            LOGGER.log(Level.SEVERE, null, ex);
-        }
-
-        listeners.stream().forEach((sl) -> {
-            sl.OnServerStarted();
-        });
+        this.port = port;
     }
 
     @Override
@@ -91,6 +85,13 @@ public class Server implements Runnable {
         try {
             LOGGER.log(Level.INFO, "Server waiting for client");
 
+             
+            serverSocket = new ServerSocket(port);
+
+            listeners.stream().forEach((sl) -> {
+                sl.OnServerStarted();
+            });
+            
             connectedSocket = serverSocket.accept();
 
             LOGGER.log(Level.INFO, "Accepted connection {0}", serverSocket.getInetAddress().toString());
@@ -115,7 +116,6 @@ public class Server implements Runnable {
             listeners.stream().forEach((sl) -> {
                 sl.OnServerError();
             });
-            StopConnection();
             LOGGER.log(Level.SEVERE, null, ex);
         }
     }
