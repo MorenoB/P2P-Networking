@@ -3,6 +3,7 @@ package Util;
 import Interfaces.IMessage;
 import data.Message;
 import data.PeerReference;
+import data.Search;
 import org.json.JSONObject;
 
 /**
@@ -63,6 +64,20 @@ public final class MessageParser {
 
         message.setMsg("Joining peer request.");
 
+        return message;
+    }
+    
+    public static Search CreateSearchPeerMessage(PeerReference sourcePeerRef, int id)
+    {
+        Search message = new Search(sourcePeerRef, id);
+        
+        return message;
+    }
+    
+    public static Search CreateSearchPeerFoundMessage(PeerReference sourcePeerRef, PeerReference targetPeerRef)
+    {
+        Search message = new Search(sourcePeerRef, targetPeerRef);
+        
         return message;
     }
 }

@@ -23,6 +23,10 @@ public final class Constants {
     public static final int MSG_MESSAGE = 2;
     public static final int MSG_PEERID = 3;
     public static final int MSG_REQUEST_PEERID = 4;
-    public static final int MSG_IPADDRESS = 5;
+    
+    public static final int MSG_REQUEST_SEARCH_FOR_ID = 5;
+    public static final int MSG_RESPONSE_SEARCH_FOR_ID = 7;
+    
+    
     public static final int MSG_JOIN = 6;
 }

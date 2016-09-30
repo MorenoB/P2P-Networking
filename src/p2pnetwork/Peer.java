@@ -10,6 +10,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import data.Message;
 import data.PeerReference;
+import data.Search;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -177,6 +178,23 @@ public class Peer implements ICommunicationListener, Runnable {
         return false;
     }
 
+    private PeerReference GetPeerReferenceById(int id) {
+        for (int i = 0; i < peerReferences.size(); i++) {
+            PeerReference peerRef = peerReferences.get(i);
+
+            if (peerRef == null) {
+                continue;
+            }
+
+            if (peerRef.getId() == id) {
+                return peerRef;
+            }
+
+        }
+
+        return null;
+    }
+
     private PeerReference FindShortestAvailablePeerRef() {
         int shortestDistanceIndex = -1;
         int shortestDist = Constants.P2PSIZE + 1;
@@ -330,10 +348,6 @@ public class Peer implements ICommunicationListener, Runnable {
                 LOGGER.log(Level.INFO, "Client recieved message = {0}", recievedMsg.getMsg());
                 break;
 
-            case Constants.MSG_IPADDRESS:
-                LOGGER.log(Level.INFO, "Client recieved ip adress = {0}", recievedMsg.getMsg());
-                break;
-
             case Constants.MSG_PEERID:
 
                 String recievedString = recievedMsg.getMsg();
@@ -357,6 +371,10 @@ public class Peer implements ICommunicationListener, Runnable {
 
                 //After succesfully recieved an ACK from joining -> Disconnect
                 DisconnectPeerFromOtherPeer();
+
+                break;
+
+            case Constants.MSG_RESPONSE_SEARCH_FOR_ID:
 
                 break;
         }
@@ -395,8 +413,41 @@ public class Peer implements ICommunicationListener, Runnable {
             case Constants.MSG_MESSAGE:
                 //LOGGER.log(Level.INFO, "Server recieved message = {0}", recievedMsg.getMsg());
                 break;
-            case Constants.MSG_IPADDRESS:
-                //LOGGER.log(Level.INFO, "Server recieved ip adress = {0}", recievedMsg.getMsg());
+            case Constants.MSG_REQUEST_SEARCH_FOR_ID:
+
+                Search recievedSearchRequest = (Search) recievedMsg;
+                PeerReference targetPeerRef = recievedSearchRequest.getTargetPeerReference();
+                PeerReference sourcePeerRef = recievedSearchRequest.getSourcePeerReference();
+                
+                if(sourcePeerRef.getId() == peerID)
+                {
+                    LOGGER.log(Level.INFO, "Recieved response! I got information from other peers to {0}", targetPeerRef);
+                    break;
+                }
+
+                int searchedForId = targetPeerRef.getId();
+
+                if (HasPeerReferenceId(searchedForId)) {
+                    targetPeerRef = GetPeerReferenceById(searchedForId);
+                    Search foundTargetPeerMessage = MessageParser.CreateSearchPeerFoundMessage(sourcePeerRef, targetPeerRef);
+
+                    server.writeMessage(foundTargetPeerMessage);
+                    break;
+                }
+
+                PeerReference otherPeer = FindShortestAvailablePeerRef();
+                if (otherPeer == null) {
+                    LOGGER.log(Level.WARNING, "Unable to find an other active peer :(");
+                    break;
+                }
+
+                ConnectToPeerId(otherPeer.getId());
+                
+                Search searchingForTargetPeer = MessageParser.CreateSearchPeerFoundMessage(sourcePeerRef, targetPeerRef);
+
+                clientMessageQueue.add(searchingForTargetPeer);
+
+                // TODO : If peer does not have the peerref, try to search in the next available peerref.
                 break;
             case Constants.MSG_PEERID:
                 //LOGGER.log(Level.INFO, "Server recieved peer id = {0}", recievedMsg.getMsg());
