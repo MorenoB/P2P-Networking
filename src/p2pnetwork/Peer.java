@@ -32,7 +32,7 @@ public class Peer implements ICommunicationListener, Runnable {
     private boolean bootPeer;
     private int peerID;
     private final int port;
-    
+
     private int connectionRetries;
 
     private final List<Byte> availablePeerIds;
@@ -223,9 +223,8 @@ public class Peer implements ICommunicationListener, Runnable {
     }
 
     public void JoinNetworkWithIP(String ipAdress, int port) {
-        
-        if(!client.SetupConnection(ipAdress, port) && connectionRetries < Constants.MAX_CONNECTION_RETRIES)
-        {
+
+        if (!client.SetupConnection(ipAdress, port) && connectionRetries < Constants.MAX_CONNECTION_RETRIES) {
             try {
                 Thread.sleep(500);
             } catch (InterruptedException ex) {
@@ -239,10 +238,6 @@ public class Peer implements ICommunicationListener, Runnable {
         if (peerID == Constants.DISCONNECTED_PEERID) {
             RequestPeerId();
         }
-
-        Message JoinPeerMsg = MessageParser.CreateJoinPeerMessage(peerID, getAddress(), getPort());
-
-        clientMessageQueue.add(JoinPeerMsg);
     }
 
     private void Stop() {
@@ -284,17 +279,15 @@ public class Peer implements ICommunicationListener, Runnable {
     public String getAddress() {
         return server.getAddress();
     }
-    
-    public String getPeerReferences()
-    {
+
+    public String getPeerReferences() {
         String readablePeerReferences = "";
         for (int i = 0; i < peerReferences.size(); i++) {
-             PeerReference peerRef = peerReferences.get(i);
-             
-            
+            PeerReference peerRef = peerReferences.get(i);
+
             readablePeerReferences += peerRef == null ? " [NULL] " : " [" + peerRef.getId() + "] ";
         }
-        
+
         return readablePeerReferences;
     }
 
@@ -347,7 +340,10 @@ public class Peer implements ICommunicationListener, Runnable {
                 Byte recievedId = Byte.parseByte(recievedString);
                 SetID(recievedId);
 
-                //DisconnectPeerFromOtherPeer();
+                //After recieving a peerid, request to join the network.
+                Message JoinPeerMsg = MessageParser.CreateJoinPeerMessage(peerID, getAddress(), getPort());
+
+                clientMessageQueue.add(JoinPeerMsg);
 
                 LOGGER.log(Level.INFO, "Client recieved peer id = {0}", recievedString);
                 break;
@@ -379,9 +375,10 @@ public class Peer implements ICommunicationListener, Runnable {
     @Override
     public void OnServerError() {
         LOGGER.log(Level.SEVERE, "Server has an error!");
-        
-        if(server != null)
+
+        if (server != null) {
             server.StopConnection();
+        }
     }
 
     @Override
@@ -441,13 +438,13 @@ public class Peer implements ICommunicationListener, Runnable {
     public void run() {
 
         while (isRunning) {
-                            
+
             try {
                 Thread.sleep(Constants.CYCLEWAIT);
             } catch (InterruptedException ex) {
                 LOGGER.log(Level.SEVERE, null, ex);
             }
-            
+
             Update();
         }
     }
