@@ -126,6 +126,22 @@ public class Peer implements ICommunicationListener, Runnable {
         return false;
     }
 
+    private void DeletePeerReference(PeerReference deletedPR) {
+
+        for (int i = 0; i < peerReferences.size(); i++) {
+            PeerReference curRef = peerReferences.get(i);
+
+            if (curRef == null) {
+                continue;
+            }
+
+            if (curRef.getId() == deletedPR.getId()) {
+                peerReferences.remove(curRef);
+                return;
+            }
+        }
+    }
+
     public void ConnectToId(int id) {
         if (HasPeerReferenceId(id)) {
             ConnectToPeerId(id);
@@ -134,9 +150,9 @@ public class Peer implements ICommunicationListener, Runnable {
 
         PeerReference nextPR = FindShortestAvailablePeerRef();
         ConnectToPeerId(nextPR.getId());
-        
+
         PeerReference sourcePeerRef = new PeerReference(peerID, getAddress(), getPort());
-        
+
         Search searchRequestMsg = MessageParser.CreateSearchPeerMessage(sourcePeerRef, id);
 
         clientMessageQueue.add(searchRequestMsg);
@@ -422,9 +438,8 @@ public class Peer implements ICommunicationListener, Runnable {
                 Search recievedSearchRequest = (Search) recievedMsg;
                 PeerReference targetPeerRef = recievedSearchRequest.getTargetPeerReference();
                 PeerReference sourcePeerRef = recievedSearchRequest.getSourcePeerReference();
-                
-                if(sourcePeerRef.getId() == peerID)
-                {
+
+                if (sourcePeerRef.getId() == peerID) {
                     LOGGER.log(Level.INFO, "Recieved response! I got information from other peers to {0}", targetPeerRef);
                     break;
                 }
@@ -446,7 +461,7 @@ public class Peer implements ICommunicationListener, Runnable {
                 }
 
                 ConnectToPeerId(otherPeer.getId());
-                
+
                 Search searchingForTargetPeer = MessageParser.CreateSearchPeerFoundMessage(sourcePeerRef, targetPeerRef);
 
                 clientMessageQueue.add(searchingForTargetPeer);
@@ -479,12 +494,18 @@ public class Peer implements ICommunicationListener, Runnable {
                 if (AddPeerReference(newRef)) {
                     LOGGER.log(Level.INFO, "Added peer reference {0}", newRef);
 
+                    //Inform the connection that we have succesfully added the peerRef
                     server.writeMessage(recievedMsg);
                     break;
                 }
 
-                LOGGER.log(Level.INFO, "Unable to add peer reference {0}", newRef);
                 //Failed to add reference to this peer, go to next peer!
+                PeerReference shortestAvailableRef = FindShortestAvailablePeerRef();
+                ConnectToPeerId(shortestAvailableRef.getId());
+
+                clientMessageQueue.add(newRef);
+
+                LOGGER.log(Level.INFO, "Unable to add peer reference {0} , Informed shortest peer id " + shortestAvailableRef.getId(), newRef);
                 break;
         }
     }
