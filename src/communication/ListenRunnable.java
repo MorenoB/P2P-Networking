@@ -42,7 +42,7 @@ class ListenRunnable implements Runnable {
                     continue;
                 }
 
-                LOGGER.log(Level.INFO, name + " Recieved {0}", inputLine);
+                //LOGGER.log(Level.INFO, name + " Recieved {0}", inputLine);
 
                 // Write to queue
                 queue.add(inputLine);

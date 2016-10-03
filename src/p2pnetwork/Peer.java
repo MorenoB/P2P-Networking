@@ -315,31 +315,31 @@ public class Peer implements ICommunicationListener, Runnable {
 
     @Override
     public void OnClientStarted() {
-        LOGGER.log(Level.INFO, "Client has started!");
+        LOGGER.log(Level.INFO, "Client {0} has started!", peerID);
     }
 
     @Override
     public void OnClientConnectedToServer() {
         clientIsConnected = true;
 
-        LOGGER.log(Level.INFO, "Client connected to a server!");
+        LOGGER.log(Level.INFO, "Client {0} connected to a server!", peerID);
     }
 
     @Override
     public void OnClientDisconnected() {
         clientIsConnected = false;
 
-        LOGGER.log(Level.INFO, "Client has disconnected!");
+        LOGGER.log(Level.INFO, "Client {0} has disconnected!", peerID);
     }
 
     @Override
     public void OnClientError() {
-        LOGGER.log(Level.SEVERE, "Client has an error!");
+        LOGGER.log(Level.SEVERE, "Client {0} has an error!", peerID);
     }
 
     @Override
     public void OnClientSentMessage(JSONObject jsonObj) {
-        LOGGER.log(Level.INFO, "Client has sent {0}", jsonObj);
+        LOGGER.log(Level.INFO, "Client " + peerID + " has sent {0}", jsonObj);
     }
 
     @Override
@@ -349,7 +349,7 @@ public class Peer implements ICommunicationListener, Runnable {
 
         switch (recievedMsg.getMessageType()) {
             case Constants.MSG_MESSAGE:
-                LOGGER.log(Level.INFO, "Client recieved message = {0}", recievedMsg.getMsg());
+                LOGGER.log(Level.INFO, "Client " + peerID + " recieved message = {0}", recievedMsg.getMsg());
                 break;
 
             case Constants.MSG_PEERID:
@@ -363,11 +363,11 @@ public class Peer implements ICommunicationListener, Runnable {
 
                 clientMessageQueue.add(JoinPeerMsg);
 
-                LOGGER.log(Level.INFO, "Client recieved peer id = {0}", recievedString);
+                LOGGER.log(Level.INFO, "Client " + peerID + " recieved peer id = {0}", recievedString);
                 break;
 
             case Constants.MSG_QUIT:
-                LOGGER.log(Level.SEVERE, "Client recieved quit command!");
+                LOGGER.log(Level.SEVERE, "Client {0} recieved quit command!", peerID);
                 Stop();
                 break;
 
@@ -386,17 +386,17 @@ public class Peer implements ICommunicationListener, Runnable {
 
     @Override
     public void OnServerStarted() {
-        LOGGER.log(Level.INFO, "Server started!");
+        LOGGER.log(Level.INFO, "Server {0} started!", peerID);
     }
 
     @Override
     public void OnServerAcceptedConnection() {
-        LOGGER.log(Level.INFO, "Server has accepted incoming connection!");
+        LOGGER.log(Level.INFO, "Server {0} has accepted incoming connection!", peerID);
     }
 
     @Override
     public void OnServerError() {
-        LOGGER.log(Level.SEVERE, "Server has an error!");
+        LOGGER.log(Level.SEVERE, "Server {0} has an error!", peerID);
 
         if (server != null) {
             server.StopConnection();
@@ -405,7 +405,7 @@ public class Peer implements ICommunicationListener, Runnable {
 
     @Override
     public void OnServerSentMessage(JSONObject jsonObj) {
-        LOGGER.log(Level.INFO, "Server has sent {0}", jsonObj);
+        LOGGER.log(Level.INFO, "Server " + peerID + " has sent {0}", jsonObj);
     }
 
     @Override
@@ -415,7 +415,7 @@ public class Peer implements ICommunicationListener, Runnable {
 
         switch (recievedMsg.getMessageType()) {
             case Constants.MSG_MESSAGE:
-                //LOGGER.log(Level.INFO, "Server recieved message = {0}", recievedMsg.getMsg());
+                LOGGER.log(Level.INFO, "Server " + peerID + " recieved message = {0}", recievedMsg.getMsg());
                 break;
             case Constants.MSG_REQUEST_SEARCH_FOR_ID:
 
@@ -457,7 +457,7 @@ public class Peer implements ICommunicationListener, Runnable {
                 //LOGGER.log(Level.INFO, "Server recieved peer id = {0}", recievedMsg.getMsg());
                 break;
             case Constants.MSG_QUIT:
-                LOGGER.log(Level.SEVERE, "Server recieved quit command!");
+                LOGGER.log(Level.SEVERE, "Server {0} recieved quit command!", peerID);
                 server.StopConnection();
 
             case Constants.MSG_REQUEST_PEERID:
