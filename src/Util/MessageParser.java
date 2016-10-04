@@ -3,7 +3,7 @@ package Util;
 import Interfaces.IMessage;
 import data.Message;
 import data.PeerReference;
-import data.Search;
+import data.SearchMessage;
 import org.json.JSONObject;
 
 /**
@@ -67,16 +67,16 @@ public final class MessageParser {
         return message;
     }
     
-    public static Search CreateSearchPeerMessage(PeerReference sourcePeerRef, int id)
+    public static SearchMessage CreateSearchPeerMessage(PeerReference sourcePeerRef, int id)
     {
-        Search message = new Search(sourcePeerRef, id);
+        SearchMessage message = new SearchMessage(sourcePeerRef, id);
         
         return message;
     }
     
-    public static Search CreateSearchPeerFoundMessage(PeerReference sourcePeerRef, PeerReference targetPeerRef)
+    public static SearchMessage CreateSearchPeerFoundMessage(PeerReference sourcePeerRef, PeerReference targetPeerRef)
     {
-        Search message = new Search(sourcePeerRef, targetPeerRef);
+        SearchMessage message = new SearchMessage(sourcePeerRef, targetPeerRef);
         
         return message;
     }

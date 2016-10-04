@@ -10,7 +10,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import data.Message;
 import data.PeerReference;
-import data.Search;
+import data.SearchMessage;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -153,7 +153,7 @@ public class Peer implements ICommunicationListener, Runnable {
 
         PeerReference sourcePeerRef = new PeerReference(peerID, getAddress(), getPort());
 
-        Search searchRequestMsg = MessageParser.CreateSearchPeerMessage(sourcePeerRef, id);
+        SearchMessage searchRequestMsg = MessageParser.CreateSearchPeerMessage(sourcePeerRef, id);
 
         clientMessageQueue.add(searchRequestMsg);
     }
@@ -394,7 +394,7 @@ public class Peer implements ICommunicationListener, Runnable {
 
                 break;
 
-            case Constants.MSG_RESPONSE_SEARCH_FOR_ID:
+            case Constants.MSG_RESPONSE_CONNECTIONINFO:
 
                 break;
         }
@@ -433,9 +433,9 @@ public class Peer implements ICommunicationListener, Runnable {
             case Constants.MSG_MESSAGE:
                 LOGGER.log(Level.INFO, "Server " + peerID + " recieved message = {0}", recievedMsg.getMsg());
                 break;
-            case Constants.MSG_REQUEST_SEARCH_FOR_ID:
+            case Constants.MSG_REQUEST_CONNECTIONINFO:
 
-                Search recievedSearchRequest = (Search) recievedMsg;
+                SearchMessage recievedSearchRequest = (SearchMessage) recievedMsg;
                 PeerReference targetPeerRef = recievedSearchRequest.getTargetPeerReference();
                 PeerReference sourcePeerRef = recievedSearchRequest.getSourcePeerReference();
 
@@ -448,7 +448,7 @@ public class Peer implements ICommunicationListener, Runnable {
 
                 if (HasPeerReferenceId(searchedForId)) {
                     targetPeerRef = GetPeerReferenceById(searchedForId);
-                    Search foundTargetPeerMessage = MessageParser.CreateSearchPeerFoundMessage(sourcePeerRef, targetPeerRef);
+                    SearchMessage foundTargetPeerMessage = MessageParser.CreateSearchPeerFoundMessage(sourcePeerRef, targetPeerRef);
 
                     server.writeMessage(foundTargetPeerMessage);
                     break;
@@ -462,7 +462,7 @@ public class Peer implements ICommunicationListener, Runnable {
 
                 ConnectToPeerId(otherPeer.getId());
 
-                Search searchingForTargetPeer = MessageParser.CreateSearchPeerFoundMessage(sourcePeerRef, targetPeerRef);
+                SearchMessage searchingForTargetPeer = MessageParser.CreateSearchPeerFoundMessage(sourcePeerRef, targetPeerRef);
 
                 clientMessageQueue.add(searchingForTargetPeer);
 

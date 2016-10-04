@@ -7,19 +7,19 @@ import Util.Constants;
  *
  * @author Moreno
  */
-public class Search extends Message implements IMessage{
+public class SearchMessage extends Message implements IMessage{
 
     private final PeerReference targetPeerReference;
     private final PeerReference sourcePeerReference;
         
-    public Search(PeerReference sourcePeerReference, PeerReference targetPeerReference)
+    public SearchMessage(PeerReference sourcePeerReference, PeerReference targetPeerReference)
     {      
         super("PEER FOUND RESPONSE");
         this.sourcePeerReference = sourcePeerReference;
         this.targetPeerReference = targetPeerReference;
     }
     
-    public Search(PeerReference sourcePeerReference, int peerId)
+    public SearchMessage(PeerReference sourcePeerReference, int peerId)
     {      
         super("PEER SEARCHING");
         this.sourcePeerReference = sourcePeerReference;
@@ -38,7 +38,7 @@ public class Search extends Message implements IMessage{
     
     public boolean getHasTargetPeerReference()
     {
-        return messageType == Constants.MSG_RESPONSE_SEARCH_FOR_ID;
+        return messageType == Constants.MSG_RESPONSE_CONNECTIONINFO || messageType == Constants.MSG_RESPONSE_SEARCH_PEERREF;
     }
 
     @Override
