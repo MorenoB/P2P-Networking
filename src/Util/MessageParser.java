@@ -28,7 +28,7 @@ public final class MessageParser {
             String address = jsonObj.getString("address");
             int portNumber = jsonObj.getInt("portNumber");
             message = new PeerReference(messageId, address, portNumber);
-            
+
             message.setMsg(msg);
         }
 
@@ -66,18 +66,28 @@ public final class MessageParser {
 
         return message;
     }
-    
-    public static SearchMessage CreateSearchPeerMessage(PeerReference sourcePeerRef, int id)
-    {
-        SearchMessage message = new SearchMessage(sourcePeerRef, id);
-        
+
+    public static SearchMessage CreateSearchPeerAddressMessage(PeerReference sourcePeerRef, int id) {
+        SearchMessage message = new SearchMessage(true, sourcePeerRef, id);
+
         return message;
     }
-    
-    public static SearchMessage CreateSearchPeerFoundMessage(PeerReference sourcePeerRef, PeerReference targetPeerRef)
-    {
-        SearchMessage message = new SearchMessage(sourcePeerRef, targetPeerRef);
-        
+
+    public static SearchMessage CreateSearchPeerAddressFoundMessage(PeerReference sourcePeerRef, PeerReference targetPeerRef) {
+        SearchMessage message = new SearchMessage(true, sourcePeerRef, targetPeerRef);
+
+        return message;
+    }
+
+    public static SearchMessage CreateSearchPeerMessage(PeerReference sourcePeerRef, int id) {
+        SearchMessage message = new SearchMessage(false, sourcePeerRef, id);
+
+        return message;
+    }
+
+    public static SearchMessage CreateSearchPeerFoundMessage(PeerReference sourcePeerRef, PeerReference targetPeerRef) {
+        SearchMessage message = new SearchMessage(false, sourcePeerRef, targetPeerRef);
+
         return message;
     }
 }

@@ -12,16 +12,20 @@ public class SearchMessage extends Message implements IMessage{
     private final PeerReference targetPeerReference;
     private final PeerReference sourcePeerReference;
         
-    public SearchMessage(PeerReference sourcePeerReference, PeerReference targetPeerReference)
+    public SearchMessage(boolean onlySearchForConnection, PeerReference sourcePeerReference, PeerReference targetPeerReference)
     {      
-        super("PEER FOUND RESPONSE");
+        super(onlySearchForConnection ? Constants.MSG_RESPONSE_CONNECTIONINFO : Constants.MSG_RESPONSE_SEARCH_PEERREF);
+        this.msg = "RESPONSE PEER-REFERENCE";
+        
         this.sourcePeerReference = sourcePeerReference;
         this.targetPeerReference = targetPeerReference;
     }
     
-    public SearchMessage(PeerReference sourcePeerReference, int peerId)
+    public SearchMessage(boolean onlySearchForConnection, PeerReference sourcePeerReference, int peerId)
     {      
-        super("PEER SEARCHING");
+        super(onlySearchForConnection ? Constants.MSG_REQUEST_CONNECTIONINFO : Constants.MSG_RESPONSE_SEARCH_PEERREF);
+        this.msg = "REQUEST PEER-REFERENCE";
+        
         this.sourcePeerReference = sourcePeerReference;
         this.targetPeerReference = new PeerReference(peerId, "NULL", -1);
     }

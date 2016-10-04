@@ -276,6 +276,9 @@ public class Peer implements ICommunicationListener, Runnable {
         if (peerID == Constants.DISCONNECTED_PEERID) {
             RequestPeerId();
         }
+        
+        
+        RequestPeerReferences();
     }
 
     private void Stop() {
@@ -290,6 +293,27 @@ public class Peer implements ICommunicationListener, Runnable {
         SetID(Constants.DISCONNECTED_PEERID);
 
         LOGGER.log(Level.INFO, "Peer is disconnected! Peer id set to {0}", Constants.DISCONNECTED_PEERID);
+    }
+    
+    private void RequestPeerReferences()
+    {
+        int idToFind = -1;
+        PeerReference ownRef = new PeerReference(peerID, getAddress(), getPort());
+        
+        for (int i = 0; i < peerReferences.size(); i++) {
+            
+            idToFind = Math.floorMod((int) (peerID + Math.pow(2, i)), Constants.P2PSIZE);
+            
+            if (HasPeerReferenceId(idToFind))
+            {
+                continue;
+            }
+            
+            SearchMessage requestPeerMessage = MessageParser.CreateSearchPeerMessage(ownRef, idToFind);
+            
+            clientMessageQueue.add(requestPeerMessage);
+        }
+        
     }
 
     private void RequestPeerId() {
@@ -396,6 +420,19 @@ public class Peer implements ICommunicationListener, Runnable {
 
             case Constants.MSG_RESPONSE_CONNECTIONINFO:
 
+                break;
+                
+            case Constants.MSG_RESPONSE_SEARCH_PEERREF:
+                
+                SearchMessage searchResponse = (SearchMessage) recievedMsg;
+                
+                PeerReference newlyAcuiredPeerRef = searchResponse.getTargetPeerReference();
+                
+                AddPeerReference(newlyAcuiredPeerRef);
+                
+                LOGGER.log(Level.INFO, "Client " + peerID + " added " + newlyAcuiredPeerRef);
+                
+                
                 break;
         }
     }
@@ -506,6 +543,38 @@ public class Peer implements ICommunicationListener, Runnable {
                 clientMessageQueue.add(newRef);
 
                 LOGGER.log(Level.INFO, "Unable to add peer reference {0} , Informed shortest peer id " + shortestAvailableRef.getId(), newRef);
+                break;
+                
+            case Constants.MSG_REQUEST_SEARCH_PEERREF:
+                
+                SearchMessage requestMsg = (SearchMessage) recievedMsg;
+                
+                int targetId = requestMsg.getTargetPeerReference().getId();
+                
+                if (HasPeerReferenceId(targetId)) {
+                    
+                    PeerReference foundRef = GetPeerReferenceById(targetId);
+                    PeerReference sourceRef = requestMsg.getSourcePeerReference();
+                    
+                    SearchMessage responseFoundMessage = MessageParser.CreateSearchPeerFoundMessage(sourceRef, foundRef);
+                    
+                    LOGGER.log(Level.INFO, "Sending back peer reference {0}", foundRef);
+                    
+                    ConnectToPeerId(sourceRef.getId());
+
+                    //Inform the connection that we have succesfully found the peerRef
+                    clientMessageQueue.add(responseFoundMessage);
+                    
+                    break;
+                }
+
+                //Go to next peer!
+                PeerReference shortestAvailableReference = FindShortestAvailablePeerRef();
+                ConnectToPeerId(shortestAvailableReference.getId());
+
+                clientMessageQueue.add(requestMsg);
+
+                LOGGER.log(Level.INFO, "Unable to add peer reference {0} , Informed shortest peer id " + shortestAvailableReference.getId(), requestMsg);
                 break;
         }
     }
