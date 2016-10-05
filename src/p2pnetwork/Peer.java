@@ -34,8 +34,6 @@ public class Peer implements ICommunicationListener, Runnable {
     private int peerID;
     private final int port;
 
-    private int connectionRetries;
-
     private int tryingToConnectToOtherId = -1;
     private int connectedToOtherId = -1;
 
@@ -71,9 +69,9 @@ public class Peer implements ICommunicationListener, Runnable {
                 }
                 availablePeerIds.add(i);
             }
-        }
-        else
+        } else {
             AddBootPeer();
+        }
 
         server = new Server(port);
 
@@ -108,16 +106,17 @@ public class Peer implements ICommunicationListener, Runnable {
     private void DisconnectPeerFromOtherPeer() {
         //Notify server we want to close connection.
         Message quitMesssage = MessageParser.CreateQuitMessage();
-        
+
         clientMessageQueue.add(quitMesssage);
     }
 
     private void SetID(byte newId) {
         LOGGER.log(Level.INFO, "Set peerId to {0}", newId);
         peerID = newId;
-        
-        if(peerID != Constants.DISCONNECTED_PEERID)
+
+        if (peerID != Constants.DISCONNECTED_PEERID) {
             RequestPeerReferences(Constants.BOOTPEER_ID);
+        }
     }
 
     private boolean AddPeerReference(PeerReference newPR) {
@@ -152,16 +151,15 @@ public class Peer implements ICommunicationListener, Runnable {
             }
         }
     }
-    
-    public void SendMessage(int toPeerId, String msg)
-    {
+
+    public void SendMessage(int toPeerId, String msg) {
         Message message = new Message(msg);
-        
+
         message.setTargetId(toPeerId);
-        
+
         clientMessageQueue.add(message);
     }
-            
+
     public void ConnectToId(int id) {
         if (HasPeerReferenceId(id)) {
             ConnectToPeerId(id);
@@ -201,7 +199,9 @@ public class Peer implements ICommunicationListener, Runnable {
         for (int i = 0; i < peerReferences.size(); i++) {
             PeerReference peerRef = peerReferences.get(i);
 
-            if(peerRef.getId() != id) continue;
+            if (peerRef.getId() != id) {
+                continue;
+            }
 
             tryingToConnectToOtherId = id;
 
@@ -288,7 +288,7 @@ public class Peer implements ICommunicationListener, Runnable {
             //Special case; Close down client if we detect a QUIT message.
             if (clientIsConnected && msgToSend.getMessageType() == Constants.MSG_QUIT) {
                 client.writeMessage(clientMessageQueue.poll());
-                                
+
                 connectedToOtherId = -1;
                 tryingToConnectToOtherId = -1;
                 return;
@@ -298,22 +298,21 @@ public class Peer implements ICommunicationListener, Runnable {
                 ConnectToId(msgToSend.getTargetId());
             } else {
                 client.writeMessage(clientMessageQueue.poll());
-                
+
                 DisconnectPeerFromOtherPeer();
             }
         }
 
     }
-    
-    private void AddBootPeer()
-    {
+
+    private void AddBootPeer() {
         PeerReference bootPeerRef = new PeerReference(Constants.BOOTPEER_ID, "localhost", Constants.SERVERPORT);
-        if(AddPeerReference(bootPeerRef))
+        if (AddPeerReference(bootPeerRef)) {
             LOGGER.log(Level.INFO, "Registered boot peer reference.");
+        }
     }
-    
-    private void DeleteBootPeer()
-    {
+
+    private void DeleteBootPeer() {
         PeerReference bootPeerRef = new PeerReference(Constants.BOOTPEER_ID, "localhost", Constants.SERVERPORT);
         DeletePeerReference(bootPeerRef);
         LOGGER.log(Level.INFO, "Deleted boot peer reference.");
@@ -321,25 +320,10 @@ public class Peer implements ICommunicationListener, Runnable {
 
     public void JoinNetwork() {
 
-        /*String ipAdress = peerRef.getAddress();
-        int networkPort = peerRef.getPortNumber();
-        
-        if (!client.SetupConnection(ipAdress, networkPort) && connectionRetries < Constants.MAX_CONNECTION_RETRIES) {
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException ex) {
-                LOGGER.log(Level.SEVERE, null, ex);
-            }
-            connectionRetries++;
-            JoinNetwork(peerRef);
-            return;
-        }*/
-
         if (peerID == Constants.DISCONNECTED_PEERID) {
             RequestPeerId(Constants.BOOTPEER_ID);
         }
 
-        
     }
 
     private void Stop() {
@@ -421,7 +405,7 @@ public class Peer implements ICommunicationListener, Runnable {
         clientIsConnected = true;
 
         connectedToOtherId = tryingToConnectToOtherId;
-        
+
         tryingToConnectToOtherId = -1;
         LOGGER.log(Level.INFO, "Client {0} connected to peer " + connectedToOtherId, peerID);
     }
