@@ -9,8 +9,8 @@
             <file>file:/C:/Projects/P2PNetworking/src/communication/SendRunnable.java</file>
             <file>file:/C:/Projects/P2PNetworking/src/p2pnetwork/Application.java</file>
             <file>file:/C:/Projects/P2PNetworking/src/communication/Client.java</file>
+            <file>file:/C:/Projects/P2PNetworking/src/data/SearchMessage.java</file>
             <file>file:/C:/Projects/P2PNetworking/src/data/PeerReference.java</file>
-            <file>file:/C:/Projects/P2PNetworking/src/data/Search.java</file>
             <file>file:/C:/Projects/P2PNetworking/src/data/Message.java</file>
             <file>file:/C:/Projects/P2PNetworking/src/Interfaces/ICommunicationListener.java</file>
             <file>file:/C:/Projects/P2PNetworking/src/Util/MessageParser.java</file>

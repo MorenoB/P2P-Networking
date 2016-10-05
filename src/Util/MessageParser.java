@@ -11,7 +11,7 @@ import org.json.JSONObject;
  * @author Moreno
  */
 public final class MessageParser {
-
+    
     public static IMessage DecodeJSON(String rawJson) {
 
         JSONObject jsonObj = new JSONObject(rawJson);
@@ -47,47 +47,61 @@ public final class MessageParser {
         Message message = new Message(Constants.MSG_QUIT);
 
         message.setMsg("SHUTDOWN");
+        
+        message.setTargetId(-1);
 
         return message;
     }
 
-    public static Message CreatePeerIDRequest() {
+    public static Message CreatePeerIDRequest(int targetConnectionId) {
         Message message = new Message(Constants.MSG_REQUEST_PEERID);
 
         message.setMsg("IHRE PEER ID BITTE!");
+        
+        message.setTargetId(targetConnectionId);
 
         return message;
     }
 
-    public static PeerReference CreateJoinPeerMessage(int id, String address, int port) {
+    public static PeerReference CreateJoinPeerMessage(int targetConnectionId, int id, String address, int port) {
         PeerReference message = new PeerReference(id, address, port);
 
         message.setMsg("Joining peer request.");
+        
+        message.setTargetId(targetConnectionId);
 
         return message;
     }
 
-    public static SearchMessage CreateSearchPeerAddressMessage(PeerReference sourcePeerRef, int id) {
+    public static SearchMessage CreateSearchPeerAddressMessage(int targetConnectionId, PeerReference sourcePeerRef, int id) {
         SearchMessage message = new SearchMessage(true, sourcePeerRef, id);
 
+        message.setTargetId(targetConnectionId);
+        
         return message;
     }
 
-    public static SearchMessage CreateSearchPeerAddressFoundMessage(PeerReference sourcePeerRef, PeerReference targetPeerRef) {
+    public static SearchMessage CreateSearchPeerAddressFoundMessage(int targetConnectionId, PeerReference sourcePeerRef, PeerReference targetPeerRef) {
         SearchMessage message = new SearchMessage(true, sourcePeerRef, targetPeerRef);
 
+        message.setTargetId(targetConnectionId);
+        
         return message;
     }
 
-    public static SearchMessage CreateSearchPeerMessage(PeerReference sourcePeerRef, int id) {
+    public static SearchMessage CreateSearchPeerMessage(int targetConnectionId, PeerReference sourcePeerRef, int id) {
         SearchMessage message = new SearchMessage(false, sourcePeerRef, id);
 
+        message.setTargetId(targetConnectionId);
+        
         return message;
     }
 
-    public static SearchMessage CreateSearchPeerFoundMessage(PeerReference sourcePeerRef, PeerReference targetPeerRef) {
+    public static SearchMessage CreateSearchPeerFoundMessage(int targetConnectionId, PeerReference sourcePeerRef, PeerReference targetPeerRef) {
         SearchMessage message = new SearchMessage(false, sourcePeerRef, targetPeerRef);
 
+        message.setTargetId(targetConnectionId);
+        
         return message;
     }
 }

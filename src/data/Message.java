@@ -9,6 +9,7 @@ public class Message implements IMessage {
     protected final int messageType;
     protected final int id;
     protected String msg;
+    protected int targetId;
 
     public Message(int messageType, int id) {
         this.messageType = messageType;
@@ -37,6 +38,14 @@ public class Message implements IMessage {
         this.msg = msg;
     }
 
+    public int getTargetId() {
+        return targetId;
+    }
+
+    public void setTargetId(int targetId) {
+        this.targetId = targetId;
+    }
+    
     @Override
     public int getMessageType() {
         return messageType;

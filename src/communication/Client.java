@@ -73,7 +73,7 @@ public class Client implements Runnable {
 
     public boolean SetupConnection(String host, int port) {
         if (hasConnection) {
-            return false;
+            StopConnection();
         }
 
         try {

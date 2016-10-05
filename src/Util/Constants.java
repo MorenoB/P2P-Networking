@@ -17,6 +17,8 @@ public final class Constants {
     
     public static final int MAX_CONNECTION_RETRIES = 4;
     
+    public static final int BOOTPEER_ID = 0;
+    
     
     //Message types
     public static final int MSG_QUIT = 1;

@@ -208,7 +208,7 @@ public class Application extends javax.swing.JFrame {
 
         newPeer.Start();
 
-        newPeer.JoinNetworkWithIP("localhost", Constants.SERVERPORT);
+        newPeer.JoinNetwork();
 
         Thread peerThread = new Thread(newPeer);
         peerThread.start();
@@ -246,7 +246,7 @@ public class Application extends javax.swing.JFrame {
     }//GEN-LAST:event_button_RefreshActionPerformed
 
     private void button_JoinPeerIdActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_button_JoinPeerIdActionPerformed
-        selectedPeer.ConnectToId(Integer.parseInt(textfield_PeerId.getText()));
+        selectedPeer.SendMessage(Integer.parseInt(textfield_PeerId.getText()), "TEST MESSAGE!");
     }//GEN-LAST:event_button_JoinPeerIdActionPerformed
 
     /**
