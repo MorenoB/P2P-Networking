@@ -61,6 +61,10 @@ class ListenRunnable implements Runnable {
 
             if (running) {
                 LOGGER.log(Level.SEVERE, name, e);
+                
+                listeners.stream().forEach((listener) -> {
+                        listener.OnClientError();
+                });
             }
         }
         running = false;

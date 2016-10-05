@@ -107,7 +107,14 @@ public class Peer implements ICommunicationListener, Runnable {
         //Notify server we want to close connection.
         Message quitMesssage = MessageParser.CreateQuitMessage();
 
-        clientMessageQueue.add(quitMesssage);
+        if(clientMessageQueue.peek() == null)
+        {
+            clientMessageQueue.add(quitMesssage);
+            return;
+        }
+        
+        if(clientMessageQueue.peek().getMessageType() != Constants.MSG_QUIT)
+            clientMessageQueue.add(quitMesssage);
     }
 
     private void SetID(byte newId) {
@@ -420,6 +427,10 @@ public class Peer implements ICommunicationListener, Runnable {
 
     @Override
     public void OnClientError() {
+        
+        if(client != null)
+            client.StopConnection();
+        
         LOGGER.log(Level.SEVERE, "Client {0} has an error!", peerID);
     }
 
@@ -556,7 +567,7 @@ public class Peer implements ICommunicationListener, Runnable {
             case Constants.MSG_QUIT:
                 LOGGER.log(Level.SEVERE, "Server {0} recieved quit command!", peerID);
                 server.StopConnection();
-
+                break;
             case Constants.MSG_REQUEST_PEERID:
 
                 for (int i = 0; i < availablePeerIds.size(); i++) {
