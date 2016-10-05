@@ -98,15 +98,21 @@ public class Peer implements ICommunicationListener, Runnable {
     private void ConnectToPeer(String ipAddress, int port) {
         if (client.HasConnection()) {
             LOGGER.log(Level.WARNING, "Client already has a connection while setting up a new connection!");
-            DisconnectPeerFromOtherPeer();
+            DisconnectPeerFromOtherPeer(true);
         }
         client.SetupConnection(ipAddress, port);
     }
 
-    private void DisconnectPeerFromOtherPeer() {
+    private void DisconnectPeerFromOtherPeer(boolean instant) {
         //Notify server we want to close connection.
         Message quitMesssage = MessageParser.CreateQuitMessage();
 
+        
+        if(instant)
+        {
+            client.writeMessage(quitMesssage);
+            return;
+        }
         if(clientMessageQueue.peek() == null)
         {
             clientMessageQueue.add(quitMesssage);
@@ -306,7 +312,7 @@ public class Peer implements ICommunicationListener, Runnable {
             } else {
                 client.writeMessage(clientMessageQueue.poll());
 
-                DisconnectPeerFromOtherPeer();
+                DisconnectPeerFromOtherPeer(false);
             }
         }
 
@@ -471,7 +477,7 @@ public class Peer implements ICommunicationListener, Runnable {
             case Constants.MSG_JOIN:
 
                 //After succesfully recieved an ACK from joining -> Disconnect
-                DisconnectPeerFromOtherPeer();
+                DisconnectPeerFromOtherPeer(false);
 
                 break;
 
@@ -586,9 +592,6 @@ public class Peer implements ICommunicationListener, Runnable {
 
                 if (AddPeerReference(newRef)) {
                     LOGGER.log(Level.INFO, "Added peer reference {0}", newRef);
-
-                    //Inform the connection that we have succesfully added the peerRef
-                    server.writeMessage(recievedMsg);
                     break;
                 }
 
