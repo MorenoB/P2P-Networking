@@ -119,14 +119,10 @@ public class Client implements Runnable {
     public void StopConnection() {
         LOGGER.log(Level.INFO, "Shutting down client.");
 
-        try {
-            listenRunnable.Stop();
-        } catch (Throwable e) {
-        }
-        try {
-            sendRunnable.Stop();
-        } catch (Throwable e) {
-        }
+        listenRunnable.Stop();
+      
+        sendRunnable.Stop();
+       
         try {
             connectedSocket.close();
         } catch (IOException e) {

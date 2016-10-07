@@ -14,6 +14,7 @@
             <file>file:/C:/Projects/P2PNetworking/src/data/Message.java</file>
             <file>file:/C:/Projects/P2PNetworking/src/Interfaces/ICommunicationListener.java</file>
             <file>file:/C:/Projects/P2PNetworking/src/Util/MessageParser.java</file>
+            <file>file:/C:/Projects/P2PNetworking/src/data/JoinMessage.java</file>
             <file>file:/C:/Projects/P2PNetworking/src/p2pnetwork/Peer.java</file>
             <file>file:/C:/Projects/P2PNetworking/src/communication/ListenRunnable.java</file>
             <file>file:/C:/Projects/P2PNetworking/src/Interfaces/IMessage.java</file>

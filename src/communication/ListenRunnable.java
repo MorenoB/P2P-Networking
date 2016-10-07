@@ -16,7 +16,7 @@ class ListenRunnable implements Runnable {
 
     private List<ICommunicationListener> listeners = new ArrayList<>();
 
-    private final BufferedReader in;
+    private BufferedReader in;
     private final ConcurrentLinkedQueue<String> queue;
     private boolean running;
     private final String name;
@@ -37,13 +37,12 @@ class ListenRunnable implements Runnable {
 
         try {
             while (running) {
-                
+
                 if ((inputLine = in.readLine()) == null) {
                     continue;
                 }
 
                 //LOGGER.log(Level.INFO, name + " Recieved {0}", inputLine);
-
                 // Write to queue
                 queue.add(inputLine);
 
@@ -57,16 +56,15 @@ class ListenRunnable implements Runnable {
                     });
                 }
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
 
-            if (running) {
-                LOGGER.log(Level.SEVERE, name, e);
-                
-                listeners.stream().forEach((listener) -> {
-                        listener.OnClientError();
-                });
-            }
+            LOGGER.log(Level.SEVERE, name, e);
+
+            listeners.stream().forEach((listener) -> {
+                listener.OnClientError();
+            });
         }
+
         running = false;
     }
 
@@ -88,7 +86,7 @@ class ListenRunnable implements Runnable {
         }
 
         running = false;
-        
+
         Thread.currentThread().stop();
     }
 

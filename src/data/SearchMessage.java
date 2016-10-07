@@ -23,7 +23,7 @@ public class SearchMessage extends Message implements IMessage{
     
     public SearchMessage(boolean onlySearchForConnection, PeerReference sourcePeerReference, int peerId)
     {      
-        super(onlySearchForConnection ? Constants.MSG_REQUEST_CONNECTIONINFO : Constants.MSG_RESPONSE_SEARCH_PEERREF);
+        super(onlySearchForConnection ? Constants.MSG_REQUEST_CONNECTIONINFO : Constants.MSG_REQUEST_SEARCH_PEERREF);
         this.msg = "REQUEST PEER-REFERENCE";
         
         this.sourcePeerReference = sourcePeerReference;
