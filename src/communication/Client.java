@@ -129,12 +129,6 @@ public class Client implements Runnable {
             sl.OnClientDisconnected();
         });
         hasConnection = false;
-
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException ex) {
-            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
-        }
     }
 
     private boolean RunnablesHaveStopped() {

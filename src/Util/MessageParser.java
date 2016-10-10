@@ -106,12 +106,12 @@ public final class MessageParser {
         return message;
     }
 
-    public static Message CreateQuitMessage() {
+    public static Message CreateQuitMessage(int targetConnectionId, int port) {
         Message message = new Message(Constants.MSG_QUIT);
 
-        message.setMsg("SHUTDOWN");
+        message.setMsg(Integer.toString(port));
 
-        message.setTargetId(-1);
+        message.setTargetId(targetConnectionId);
 
         return message;
     }

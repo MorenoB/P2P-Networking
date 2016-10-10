@@ -14,7 +14,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.json.JSONObject;
-import sun.misc.Queue;
 
 /**
  *
@@ -93,7 +92,7 @@ public class Server implements Runnable {
 
             Socket connectedSocket = serverSocket.accept();
 
-            LOGGER.log(Level.INFO, "Accepted connection {0} at server connection " + serverSocket.getInetAddress().getHostName(), connectedSocket.getInetAddress().getHostAddress());
+            //LOGGER.log(Level.INFO, "Accepted connection {0} at server connection " + serverSocket.getInetAddress().getHostName(), connectedSocket.getInetAddress().getHostAddress());
 
             
             portQueue.add(connectedSocket.getPort());
@@ -148,10 +147,11 @@ public class Server implements Runnable {
     }
 
     /**
-     * Shuts down the listeners and itself.
+     * Shuts down the listeners.
+     * @param portNr Port number
      */
     public void StopConnection(int portNr) {
-        LOGGER.log(Level.INFO, "Shutting down server.");
+        LOGGER.log(Level.INFO, "Shutting server connection for port {0}", portNr);
 
         ListenRunnable listR = getListenRunnable(portNr);
         SendRunnable sendR = getSendRunnable(portNr);
@@ -202,7 +202,7 @@ public class Server implements Runnable {
 
         if(portQueue.peek() == null)
         {
-            LOGGER.log(Level.SEVERE, "PortQueue is empty, unable to send message " + message.getMsg());
+            LOGGER.log(Level.SEVERE, "PortQueue is empty, unable to send message {0}", message.getMsg());
             return;
         }
         int portNr = portQueue.poll();

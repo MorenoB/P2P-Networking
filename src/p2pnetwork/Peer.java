@@ -110,7 +110,8 @@ public class Peer implements ICommunicationListener, Runnable {
 
     private void DisconnectPeerFromOtherPeer(boolean instant) {
         //Notify server we want to close connection.
-        Message quitMesssage = MessageParser.CreateQuitMessage();
+        
+        Message quitMesssage = MessageParser.CreateQuitMessage(connectedToOtherId, port);
         
         if (instant) {
             client.writeMessage(quitMesssage);
@@ -180,11 +181,13 @@ public class Peer implements ICommunicationListener, Runnable {
 
     public void ConnectToId(int id) {
         if (connectedToOtherId == id) {
-            return;
+            LOGGER.log(Level.WARNING, "Peer {0} is already connected to {1}", new Object[]{peerID, id});
+            return; 
         }
 
         if (HasPeerReferenceId(id)) {
             ConnectToPeerId(id);
+            LOGGER.log(Level.INFO, "Peer {0} will connect to id {1}", new Object[]{peerID, id});
             return;
         }
 
@@ -204,6 +207,7 @@ public class Peer implements ICommunicationListener, Runnable {
 
         SearchMessage searchRequestMsg = MessageParser.CreateSearchPeerMessage(nextPR.getId(), sourcePeerRef, id);
 
+        LOGGER.log(Level.INFO, "Peer {0} will connect to {1} to search for target id {2}", new Object[]{peerID, nextPR.getId(), id});
         clientMessageQueue.add(searchRequestMsg);
     }
 
@@ -321,6 +325,7 @@ public class Peer implements ICommunicationListener, Runnable {
             }
 
             if (msgToSend.getTargetId() != connectedToOtherId) {
+                LOGGER.log(Level.INFO, "Peer {0} is connected to {1} while trying to connect to {2}", new Object[]{peerID, connectedToOtherId, msgToSend.getTargetId()});
                 ConnectToId(msgToSend.getTargetId());
             } else {
                 client.writeMessage(clientMessageQueue.poll());
@@ -485,7 +490,7 @@ public class Peer implements ICommunicationListener, Runnable {
 
             case Constants.MSG_QUIT:
                 LOGGER.log(Level.SEVERE, "Client {0} recieved quit command!", peerID);
-                Stop();
+                //Stop();
                 break;
 
             case Constants.MSG_JOIN:
@@ -544,7 +549,7 @@ public class Peer implements ICommunicationListener, Runnable {
             return;
         }
 
-        LOGGER.log(Level.INFO, "Server recieved {0}", recievedMsg.getMsg());
+        LOGGER.log(Level.INFO, "Server " + peerID +  " recieved {0}", recievedMsg.getMsg());
 
         switch (recievedMsg.getMessageType()) {
             case Constants.MSG_MESSAGE:
@@ -590,7 +595,7 @@ public class Peer implements ICommunicationListener, Runnable {
                 break;
             case Constants.MSG_QUIT:
                 LOGGER.log(Level.SEVERE, "Server {0} recieved quit command!", peerID);
-                //server.StopConnection();
+                server.StopConnection(Integer.parseInt(recievedMsg.getMsg()));
                 break;
             case Constants.MSG_REQUEST_PEERID:
 

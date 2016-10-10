@@ -67,11 +67,11 @@ class ListenRunnable implements Runnable {
             }
         } catch (Exception e) {
 
-            LOGGER.log(Level.SEVERE, name, e);
+            /*LOGGER.log(Level.SEVERE, name, e);
 
             listeners.stream().forEach((listener) -> {
                 listener.OnClientError();
-            });
+            });*/
         }
 
         running = false;
@@ -100,15 +100,16 @@ class ListenRunnable implements Runnable {
     public void Stop() {
         LOGGER.log(Level.INFO, "{0} stopping Listen Runnable...", name);
 
-        try {
+        /*try {
+            in.reset();
             in.close();
         } catch (IOException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
-        }
+        }*/
 
         running = false;
 
-        Thread.currentThread().stop();
+        //Thread.currentThread().stop();
     }
     
     public boolean hasMessage()
