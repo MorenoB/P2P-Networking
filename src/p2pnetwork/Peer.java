@@ -41,6 +41,8 @@ public class Peer implements ICommunicationListener, Runnable {
     private final List<Byte> availablePeerIds;
     private final List<PeerReference> peerReferences;
 
+    private final List<String> processedGuids;
+
     private final ConcurrentLinkedQueue<Message> clientMessageQueue;
 
     public Peer(byte peerID, int port) {
@@ -55,6 +57,8 @@ public class Peer implements ICommunicationListener, Runnable {
 
         this.peerReferences = new ArrayList<>();
 
+        this.processedGuids = new ArrayList<>();
+        
         for (int i = 0; i < Constants.INITIAL_HASHMAP_SIZE; i++) {
             peerReferences.add(null);
         }
@@ -107,7 +111,7 @@ public class Peer implements ICommunicationListener, Runnable {
     private void DisconnectPeerFromOtherPeer(boolean instant) {
         //Notify server we want to close connection.
         Message quitMesssage = MessageParser.CreateQuitMessage();
-
+        
         if (instant) {
             client.writeMessage(quitMesssage);
             return;
@@ -139,7 +143,7 @@ public class Peer implements ICommunicationListener, Runnable {
             if (curRef != null) {
                 continue;
             }
-            
+
             LOGGER.log(Level.INFO, "{0} added peer {1}", new Object[]{peerID, newPR.getId()});
 
             peerReferences.set(i, newPR);
@@ -191,7 +195,6 @@ public class Peer implements ICommunicationListener, Runnable {
             return;
         }
 
-        
         //If unable to connect to peer id, connect to shortest available peer
         //and send a search peer request to it to see if it has a peerReference to the original
         //peer id request.
@@ -489,7 +492,6 @@ public class Peer implements ICommunicationListener, Runnable {
 
                 //After succesfully recieved an ACK from joining -> Disconnect
                 //DisconnectPeerFromOtherPeer(false);
-
                 break;
 
             case Constants.MSG_RESPONSE_CONNECTIONINFO:
@@ -536,7 +538,13 @@ public class Peer implements ICommunicationListener, Runnable {
 
         IMessage recievedMsg = server.getMessage();
         
-        LOGGER.log(Level.INFO, "Server recieved " + recievedMsg.getMsg());
+        if(processedGuids.contains(recievedMsg.getGuid()))
+        {
+            LOGGER.log(Level.INFO, "Server already processed message {0}", recievedMsg.getMsg());
+            return;
+        }
+
+        LOGGER.log(Level.INFO, "Server recieved {0}", recievedMsg.getMsg());
 
         switch (recievedMsg.getMessageType()) {
             case Constants.MSG_MESSAGE:
@@ -640,9 +648,8 @@ public class Peer implements ICommunicationListener, Runnable {
 
                 //Go to next peer!
                 PeerReference shortestAvailableReference = FindShortestAvailablePeerRef();
-                
-                if(shortestAvailableReference == null)
-                {
+
+                if (shortestAvailableReference == null) {
                     LOGGER.log(Level.WARNING, "Peer {0} was unable to find shortest available peer ref!", peerID);
                     break;
                 }
@@ -671,6 +678,8 @@ public class Peer implements ICommunicationListener, Runnable {
                 break;
 
         }
+
+        processedGuids.add(recievedMsg.getGuid());
     }
 
     @Override

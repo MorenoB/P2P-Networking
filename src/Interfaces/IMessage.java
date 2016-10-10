@@ -8,4 +8,5 @@ public interface IMessage {
     
     public int getMessageType();
     public String getMsg();
+    public String getGuid();
 }

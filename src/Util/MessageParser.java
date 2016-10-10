@@ -19,20 +19,19 @@ public final class MessageParser {
 
         String msg = jsonObj.getString("msg");
         int messageType = jsonObj.getInt("messageType");
-        int messageId = jsonObj.getInt("id");
+        String messageGuid = jsonObj.getString("guid");
         int targetId = jsonObj.getInt("targetId");
-        
+
         PeerReference sourcePeerRef = null;
         PeerReference targetPeerRef = null;
-        
-        try{
 
-        sourcePeerRef = DecodeJsonToPeerReference(jsonObj.getJSONObject("sourcePeerReference"));
-        targetPeerRef = DecodeJsonToPeerReference(jsonObj.getJSONObject("targetPeerReference"));
-        
-        } catch(Exception e)
-        {
-            
+        try {
+
+            sourcePeerRef = DecodeJsonToPeerReference(jsonObj.getJSONObject("sourcePeerReference"));
+            targetPeerRef = DecodeJsonToPeerReference(jsonObj.getJSONObject("targetPeerReference"));
+
+        } catch (Exception e) {
+
         }
 
         switch (messageType) {
@@ -42,6 +41,7 @@ public final class MessageParser {
 
                 JoinMessage joinMessage = new JoinMessage(joiningPeer);
 
+                joinMessage.setGuid(messageGuid);
                 joinMessage.setTargetId(targetId);
 
                 return joinMessage;
@@ -50,26 +50,31 @@ public final class MessageParser {
 
                 SearchMessage searchReqConnection = CreateSearchPeerAddressMessage(targetId, sourcePeerRef, targetPeerRef.getId());
 
+                searchReqConnection.setGuid(messageGuid);
                 return searchReqConnection;
 
             case Constants.MSG_REQUEST_SEARCH_PEERREF:
 
                 SearchMessage searchReqPeerRef = CreateSearchPeerMessage(targetId, sourcePeerRef, targetPeerRef.getId());
 
+                searchReqPeerRef.setGuid(messageGuid);
                 return searchReqPeerRef;
 
             case Constants.MSG_RESPONSE_CONNECTIONINFO:
                 SearchMessage searchResponseConnection = CreateSearchPeerAddressFoundMessage(targetId, sourcePeerRef, targetPeerRef);
 
+                searchResponseConnection.setGuid(messageGuid);
                 return searchResponseConnection;
             case Constants.MSG_RESPONSE_SEARCH_PEERREF:
                 SearchMessage searchResponsePeerRef = CreateSearchPeerFoundMessage(targetId, sourcePeerRef, targetPeerRef);
 
+                searchResponsePeerRef.setGuid(messageGuid);
                 return searchResponsePeerRef;
             default:
-                Message message = new Message(messageType, messageId);
+                Message message = new Message(messageType);
                 message.setMsg(msg);
                 message.setTargetId(targetId);
+                message.setGuid(messageGuid);
 
                 return message;
         }
@@ -83,14 +88,13 @@ public final class MessageParser {
             message.setMsg(msg);
         }*/
     }
-    
-    public static PeerReference DecodeJsonToPeerReference(JSONObject jsonObj)
-    {
+
+    public static PeerReference DecodeJsonToPeerReference(JSONObject jsonObj) {
         int id = jsonObj.getInt("id");
         int port = jsonObj.getInt("portNumber");
         String address = jsonObj.getString("address");
         PeerReference peerRef = new PeerReference(id, address, port);
-        
+
         return peerRef;
     }
 
