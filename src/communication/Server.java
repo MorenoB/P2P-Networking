@@ -5,17 +5,16 @@ import Interfaces.IMessage;
 import Util.Constants;
 import Util.MessageParser;
 import data.Message;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.json.JSONObject;
+import sun.misc.Queue;
 
 /**
  *
@@ -25,21 +24,26 @@ public class Server implements Runnable {
 
     private final List<ICommunicationListener> listeners = new ArrayList<>();
 
-    private Socket connectedSocket;
     private ServerSocket serverSocket;
 
     private boolean running;
 
     private final int port;
 
-    private ListenRunnable listenRunnable;
-    private SendRunnable sendRunnable;
+    private final List<ListenRunnable> listenRunnables;
+    private final List<SendRunnable> sendRunnables;
+    
+    private final ConcurrentLinkedQueue<Integer> portQueue;
 
     private static final Logger LOGGER = Logger.getLogger(Server.class.getCanonicalName());
 
     public Server(int port) {
 
+        listenRunnables = new ArrayList<>();
+        sendRunnables = new ArrayList<>();
         this.port = port;
+        
+        portQueue = new ConcurrentLinkedQueue<>();
     }
 
     @Override
@@ -48,6 +52,16 @@ public class Server implements Runnable {
         LOGGER.log(Level.INFO, "Starting up server...");
 
         running = true;
+        
+        try {
+            serverSocket = new ServerSocket(port);
+            
+            listeners.stream().forEach((sl) -> {
+                sl.OnServerStarted();
+            });
+        } catch (IOException ex) {
+            LOGGER.log(Level.SEVERE, null, ex);
+        }
 
         while (running) {
 
@@ -57,44 +71,44 @@ public class Server implements Runnable {
                 LOGGER.log(Level.SEVERE, null, ex);
             }
 
-            if (connectedSocket == null) {
-                ListenForConnection();
-            }
+            ListenForConnection();
+            
         }
     }
 
     public void AddListener(ICommunicationListener toAdd) {
         listeners.add(toAdd);
-
-        if (listenRunnable != null) {
-            listenRunnable.AddListener(toAdd);
+        
+        for (int i = 0; i < listenRunnables.size(); i++) {
+            listenRunnables.get(i).AddListener(toAdd);
         }
-
-        if (sendRunnable != null) {
-            sendRunnable.AddListener(toAdd);
+        
+        for (int i = 0; i < sendRunnables.size(); i++) {
+            sendRunnables.get(i).AddListener(toAdd);
         }
     }
 
     private void ListenForConnection() {
         try {
-            serverSocket = new ServerSocket(port);
 
-            listeners.stream().forEach((sl) -> {
-                sl.OnServerStarted();
-            });
+            Socket connectedSocket = serverSocket.accept();
 
-            connectedSocket = serverSocket.accept();
+            LOGGER.log(Level.INFO, "Accepted connection {0} at server connection " + serverSocket.getInetAddress().getHostName(), connectedSocket.getInetAddress().getHostAddress());
 
-            LOGGER.log(Level.INFO, "Accepted connection {0}", serverSocket.getInetAddress().toString());
+            
+            portQueue.add(connectedSocket.getPort());
+            
+            ListenRunnable listenR = new ListenRunnable("SERVER", connectedSocket);
+            SendRunnable sendR = new SendRunnable("SERVER", connectedSocket);
+            
+            listenR.UpdateListeners(listeners);
+            sendR.UpdateListeners(listeners);
+            
+            listenRunnables.add(listenR); 
+            sendRunnables.add(sendR);
 
-            listenRunnable = new ListenRunnable("SERVER", new BufferedReader(new InputStreamReader(connectedSocket.getInputStream())));
-            sendRunnable = new SendRunnable("SERVER", new PrintWriter(connectedSocket.getOutputStream(), true));
-
-            listenRunnable.UpdateListeners(listeners);
-            sendRunnable.UpdateListeners(listeners);
-
-            Thread listenThread = new Thread(listenRunnable, "Server-ListenRunnable");
-            Thread sendThread = new Thread(sendRunnable, "Server-SendRunnable");
+            Thread listenThread = new Thread(listenR, "Server-ListenRunnable");
+            Thread sendThread = new Thread(sendR, "Server-SendRunnable");
 
             listenThread.start();
             sendThread.start();
@@ -110,89 +124,99 @@ public class Server implements Runnable {
             LOGGER.log(Level.SEVERE, null, ex);
         }
     }
+    
+    private ListenRunnable getListenRunnable(int port)
+    {
+        for (int i = 0; i < listenRunnables.size(); i++) {
+            if(listenRunnables.get(i).getPort() == port)
+                return listenRunnables.get(i);
+                
+        }
+        
+        return null;
+    }
+    
+    private SendRunnable getSendRunnable(int port)
+    {
+        for (int i = 0; i < sendRunnables.size(); i++) {
+            if(sendRunnables.get(i).getPort() == port)
+                return sendRunnables.get(i);
+                
+        }
+        
+        return null;
+    }
 
     /**
      * Shuts down the listeners and itself.
      */
-    public void StopConnection() {
+    public void StopConnection(int portNr) {
         LOGGER.log(Level.INFO, "Shutting down server.");
 
+        ListenRunnable listR = getListenRunnable(portNr);
+        SendRunnable sendR = getSendRunnable(portNr);
+        
         try {
-            listenRunnable.Stop();
+            listR.Stop();
 
-            while (listenRunnable.isRunning()) {
+            while (listR.isRunning()) {
                 //
             }
+            
+            listenRunnables.remove(listR);
         } catch (Throwable e) {
         }
         try {
-            sendRunnable.Stop();
+            sendR.Stop();
 
-            while (sendRunnable.isRunning()) {
+            while (sendR.isRunning()) {
                 //
             }
+            
+            sendRunnables.remove(sendR);
         } catch (Throwable e) {
-        }
-        try {
-            serverSocket.close();
-
-            if (connectedSocket != null) {
-                connectedSocket.close();
-            }
-
-            connectedSocket = null;
-        } catch (IOException e) {
-            LOGGER.log(Level.SEVERE, null, e);
         }
     }
 
     public void Stop() {
-        StopConnection();
+        //StopConnection();
         running = false;
     }
 
-    private boolean RunnablesHaveStopped() {
-        return listenRunnable == null || sendRunnable == null || !listenRunnable.isRunning() || !sendRunnable.isRunning();
-    }
-
     public IMessage getMessage() {
-        return MessageParser.DecodeJSON(listenRunnable.getRawMessage());
-    }
-
-    /**
-     * Writes a message to the sender buffer.
-     *
-     * @param message XML message.
-     */
-    public void writeMessage(String message) {
-
-        Message msgMessage = new Message(Constants.MSG_MESSAGE);
-        msgMessage.setMsg(message);
-
-        JSONObject jsonObj = new JSONObject(msgMessage);
-
-        if (sendRunnable == null) {
-            LOGGER.log(Level.SEVERE, "Sendrunnable is null for msg {0}", message);
-            return;
+        
+        for (int i = 0; i < listenRunnables.size(); i++) {
+            ListenRunnable listenR = listenRunnables.get(i);
+            if(listenR == null) continue;
+            
+            if(!listenR.hasMessage()) continue;
+            
+            return MessageParser.DecodeJSON(listenR.getRawMessage());
+            
         }
-
-        sendRunnable.writeMessage(jsonObj);
-    }
-
-    public boolean isReady() {
-        return isRunning() && !RunnablesHaveStopped();
+        
+        return new Message("NULL");
     }
 
     public void writeMessage(IMessage message) {
 
+        if(portQueue.peek() == null)
+        {
+            LOGGER.log(Level.SEVERE, "PortQueue is empty, unable to send message " + message.getMsg());
+            return;
+        }
+        int portNr = portQueue.poll();
+        
         JSONObject jsonObj = new JSONObject(message);
 
-        if (sendRunnable == null) {
+        SendRunnable sendR = getSendRunnable(portNr);
+        
+        if (sendR == null) {
             LOGGER.log(Level.SEVERE, "Sendrunnable is null for msg {0}", message.getMsg());
             return;
         }
 
-        sendRunnable.writeMessage(jsonObj);
+        sendR.writeMessage(jsonObj);
     }
 
     public boolean isRunning() {

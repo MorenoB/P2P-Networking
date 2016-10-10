@@ -2,7 +2,9 @@ package communication;
 
 import Interfaces.ICommunicationListener;
 import Util.Constants;
+import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -16,17 +18,24 @@ import org.json.JSONObject;
 class SendRunnable implements Runnable {
 
     private List<ICommunicationListener> listeners = new ArrayList<>();
-    private final PrintWriter out;
+    private PrintWriter out;
     private final ConcurrentLinkedQueue<JSONObject> queue;
+    private final Socket socket;
     private boolean running;
     private final String name;
 
     private static final Logger LOGGER = Logger.getLogger(SendRunnable.class.getCanonicalName());
 
-    public SendRunnable(String name, PrintWriter out) {
+    public SendRunnable(String name, Socket socket) {
         this.name = name;
-        this.out = out;
+        this.socket = socket;
         this.queue = new ConcurrentLinkedQueue<>();
+        
+        try {
+            this.out = new PrintWriter(socket.getOutputStream(), true);
+        } catch (IOException ex) {
+            LOGGER.log(Level.SEVERE, null, ex);
+        }
     }
 
     @Override
@@ -58,6 +67,16 @@ class SendRunnable implements Runnable {
                 }
             }
         }
+    }
+    
+    public Socket getSocket()
+    {
+        return socket;
+    }
+    
+    public int getPort()
+    {
+        return socket.getPort();
     }
 
     public void UpdateListeners(List<ICommunicationListener> newListeners) {

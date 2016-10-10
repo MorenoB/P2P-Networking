@@ -1,10 +1,7 @@
 package communication;
 
 import Util.Constants;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
@@ -86,8 +83,8 @@ public class Client implements Runnable {
 
             LOGGER.log(Level.INFO, "Succesfully connected to {0}", connectedSocket.getInetAddress().toString());
 
-            listenRunnable = new ListenRunnable("CLIENT", new BufferedReader(new InputStreamReader(connectedSocket.getInputStream())));
-            sendRunnable = new SendRunnable("CLIENT", new PrintWriter(connectedSocket.getOutputStream(), true));
+            listenRunnable = new ListenRunnable("CLIENT", connectedSocket);
+            sendRunnable = new SendRunnable("CLIENT", connectedSocket);
 
             listenRunnable.UpdateListeners(listeners);
             sendRunnable.UpdateListeners(listeners);

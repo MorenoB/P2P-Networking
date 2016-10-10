@@ -524,9 +524,6 @@ public class Peer implements ICommunicationListener, Runnable {
     public void OnServerError() {
         LOGGER.log(Level.SEVERE, "Server {0} has an error!", peerID);
 
-        if (server != null) {
-            server.StopConnection();
-        }
     }
 
     @Override
@@ -538,6 +535,8 @@ public class Peer implements ICommunicationListener, Runnable {
     public void OnServerRecievedMessage() {
 
         IMessage recievedMsg = server.getMessage();
+        
+        LOGGER.log(Level.INFO, "Server recieved " + recievedMsg.getMsg());
 
         switch (recievedMsg.getMessageType()) {
             case Constants.MSG_MESSAGE:
@@ -583,7 +582,7 @@ public class Peer implements ICommunicationListener, Runnable {
                 break;
             case Constants.MSG_QUIT:
                 LOGGER.log(Level.SEVERE, "Server {0} recieved quit command!", peerID);
-                server.StopConnection();
+                //server.StopConnection();
                 break;
             case Constants.MSG_REQUEST_PEERID:
 
