@@ -88,7 +88,7 @@ class SendRunnable implements Runnable {
     }
 
     public void Stop() {
-        LOGGER.log(Level.INFO, "{0} stopping Send Runnable...", name);
+        //LOGGER.log(Level.INFO, "{0} stopping Send Runnable...", name);
 
         out.close();
 

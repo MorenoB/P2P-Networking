@@ -77,12 +77,6 @@ public class Client implements Runnable {
             connectedSocket = new Socket(host, port);
             hasConnection = connectedSocket.isConnected();
 
-            listeners.stream().forEach((sl) -> {
-                sl.OnClientConnectedToServer();
-            });
-
-            LOGGER.log(Level.INFO, "Succesfully connected to {0}", connectedSocket.getInetAddress().toString());
-
             listenRunnable = new ListenRunnable("CLIENT", connectedSocket);
             sendRunnable = new SendRunnable("CLIENT", connectedSocket);
 
@@ -94,6 +88,12 @@ public class Client implements Runnable {
 
             listenThread.start();
             sendThread.start();
+            
+            listeners.stream().forEach((sl) -> {
+                sl.OnClientConnectedToServer();
+            });
+
+            LOGGER.log(Level.INFO, "Succesfully connected to {0}", connectedSocket.getInetAddress().toString());
             
             return true;
         } catch (IOException ex) {

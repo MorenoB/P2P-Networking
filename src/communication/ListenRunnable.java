@@ -98,7 +98,7 @@ class ListenRunnable implements Runnable {
     }
 
     public void Stop() {
-        LOGGER.log(Level.INFO, "{0} stopping Listen Runnable...", name);
+        //LOGGER.log(Level.INFO, "{0} stopping Listen Runnable...", name);
 
         /*try {
             in.reset();
