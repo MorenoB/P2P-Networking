@@ -39,11 +39,6 @@ public class Client implements Runnable {
 
         while (running) {
 
-            /*if(RunnablesHaveStopped())
-            {
-                LOGGER.log(Level.SEVERE, "ListenRunnable/SendRunnable stopped running! Shutting down connection...");
-                StopConnection();
-            }*/
             try {
                 Thread.sleep(Constants.CYCLEWAIT);
             } catch (InterruptedException ex) {
@@ -88,13 +83,13 @@ public class Client implements Runnable {
 
             listenThread.start();
             sendThread.start();
-            
+
             listeners.stream().forEach((sl) -> {
                 sl.OnClientConnectedToServer();
             });
 
             LOGGER.log(Level.INFO, "Succesfully connected to {0}", connectedSocket.getInetAddress().toString());
-            
+
             return true;
         } catch (IOException ex) {
 
@@ -104,7 +99,7 @@ public class Client implements Runnable {
 
             hasConnection = false;
             LOGGER.log(Level.SEVERE, "Client failed to connect to server!");
-            
+
             return false;
         }
 
@@ -117,9 +112,9 @@ public class Client implements Runnable {
         LOGGER.log(Level.INFO, "Shutting down client.");
 
         listenRunnable.Stop();
-      
+
         sendRunnable.Stop();
-       
+
         try {
             connectedSocket.close();
         } catch (IOException e) {

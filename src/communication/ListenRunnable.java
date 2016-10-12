@@ -29,7 +29,7 @@ class ListenRunnable implements Runnable {
     public ListenRunnable(String name, Socket socket) {
         this.name = name;
         this.socket = socket;
-        
+
         try {
             this.in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         } catch (IOException ex) {
@@ -76,14 +76,12 @@ class ListenRunnable implements Runnable {
 
         running = false;
     }
-    
-    public Socket getSocket()
-    {
-        return socket; 
+
+    public Socket getSocket() {
+        return socket;
     }
-    
-    public int getPort()
-    {
+
+    public int getPort() {
         return socket.getPort();
     }
 
@@ -92,28 +90,17 @@ class ListenRunnable implements Runnable {
     }
 
     public void AddListener(ICommunicationListener listener) {
-        
-        if(!listeners.contains(listener))
+
+        if (!listeners.contains(listener)) {
             listeners.add(listener);
+        }
     }
 
     public void Stop() {
-        //LOGGER.log(Level.INFO, "{0} stopping Listen Runnable...", name);
-
-        /*try {
-            in.reset();
-            in.close();
-        } catch (IOException ex) {
-            LOGGER.log(Level.SEVERE, null, ex);
-        }*/
-
         running = false;
-
-        //Thread.currentThread().stop();
     }
-    
-    public boolean hasMessage()
-    {
+
+    public boolean hasMessage() {
         return !queue.isEmpty();
     }
 

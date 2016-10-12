@@ -30,7 +30,7 @@ class SendRunnable implements Runnable {
         this.name = name;
         this.socket = socket;
         this.queue = new ConcurrentLinkedQueue<>();
-        
+
         try {
             this.out = new PrintWriter(socket.getOutputStream(), true);
         } catch (IOException ex) {
@@ -68,14 +68,12 @@ class SendRunnable implements Runnable {
             }
         }
     }
-    
-    public Socket getSocket()
-    {
+
+    public Socket getSocket() {
         return socket;
     }
-    
-    public int getPort()
-    {
+
+    public int getPort() {
         return socket.getPort();
     }
 
