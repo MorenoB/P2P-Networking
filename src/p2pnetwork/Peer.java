@@ -98,7 +98,7 @@ public class Peer implements ICommunicationListener, Runnable {
 
     private void ConnectToAddress(String ipAddress, int port) {
         if (client.HasConnection()) {
-            LOGGER.log(Level.WARNING, "Client already has a connection while setting up a new connection!");
+            LOGGER.log(Level.WARNING, "Peer {0} already has a connection while setting up a new connection!", peerID);
             DisconnectPeerFromOtherPeer(true);
         }
         client.SetupConnection(ipAddress, port);
@@ -124,7 +124,7 @@ public class Peer implements ICommunicationListener, Runnable {
     }
 
     private void SetID(byte newId) {
-        LOGGER.log(Level.INFO, "Set peerId to {0}", newId);
+        LOGGER.log(Level.INFO, "Peer " + peerID + " set peerId to {0}", newId);
         peerID = newId;
 
         if (!isDisconnectedFromNetwork()) {
@@ -141,7 +141,7 @@ public class Peer implements ICommunicationListener, Runnable {
                 continue;
             }
 
-            LOGGER.log(Level.INFO, "{0} added peer {1}", new Object[]{peerID, newPR.getId()});
+            LOGGER.log(Level.INFO, "Peer {0} added peer {1}", new Object[]{peerID, newPR.getId()});
 
             peerReferences.set(i, newPR);
 
@@ -195,7 +195,7 @@ public class Peer implements ICommunicationListener, Runnable {
         PeerReference nextPR = FindShortestAvailablePeerRef();
 
         if (nextPR == null) {
-            LOGGER.log(Level.SEVERE, "Unable to connect to a non existing peer reference!");
+            LOGGER.log(Level.SEVERE, "Peer {0} unable to connect to a non existing peer reference!", peerID);
             return;
         }
 
@@ -356,14 +356,14 @@ public class Peer implements ICommunicationListener, Runnable {
     private void AddBootPeer() {
         PeerReference bootPeerRef = new PeerReference(Constants.BOOTPEER_ID, "localhost", Constants.SERVERPORT);
         if (AddPeerReference(bootPeerRef)) {
-            LOGGER.log(Level.INFO, "Registered boot peer reference.");
+            LOGGER.log(Level.INFO, "Peer {0} registered boot peer reference.", peerID);
         }
     }
 
     private void DeleteBootPeer() {
         PeerReference bootPeerRef = new PeerReference(Constants.BOOTPEER_ID, "localhost", Constants.SERVERPORT);
         DeletePeerReference(bootPeerRef);
-        LOGGER.log(Level.INFO, "Deleted boot peer reference.");
+        LOGGER.log(Level.INFO, "Peer {0} deleted boot peer reference.", peerID);
     }
 
     public void JoinNetwork() {
@@ -544,7 +544,7 @@ public class Peer implements ICommunicationListener, Runnable {
         IMessage recievedMsg = server.getMessage();
 
         if (processedGuids.contains(recievedMsg.getGuid())) {
-            LOGGER.log(Level.INFO, "Server already processed message {0}", recievedMsg.getMsg());
+            LOGGER.log(Level.INFO, "Server " + peerID + " already processed message {0}", recievedMsg.getMsg());
             return;
         }
 
@@ -580,7 +580,7 @@ public class Peer implements ICommunicationListener, Runnable {
 
                 PeerReference shortestNextPR = FindShortestAvailablePeerRef();
                 if (shortestNextPR == null) {
-                    LOGGER.log(Level.WARNING, "Unable to find an other active peer :(");
+                    LOGGER.log(Level.WARNING, "Peer {0} unable to find an other active peer :(", peerID);
                     break;
                 }
 
@@ -642,7 +642,7 @@ public class Peer implements ICommunicationListener, Runnable {
 
                     SearchMessage responseFoundMessage = MessageParser.CreateSearchPeerFoundMessage(sourceRef.getId(), sourceRef, foundRef);
 
-                    LOGGER.log(Level.INFO, "Sending back peer reference {0}", foundRef);
+                    LOGGER.log(Level.INFO, "Peer " + peerID + " sending back peer reference {0}", foundRef);
 
                     //Inform the connection that we have succesfully found the peerRef
                     clientMessageQueue.add(responseFoundMessage);
@@ -662,7 +662,7 @@ public class Peer implements ICommunicationListener, Runnable {
 
                 clientMessageQueue.add(requestMsg);
 
-                LOGGER.log(Level.INFO, "Unable to add peer reference {0} , Informed shortest peer id " + shortestAvailableReference.getId(), requestMsg);
+                LOGGER.log(Level.INFO, "Peer " + peerID + " unable to add peer reference {0} , Informed shortest peer id " + shortestAvailableReference.getId(), requestMsg);
                 break;
 
             case Constants.MSG_RESPONSE_CONNECTIONINFO:
