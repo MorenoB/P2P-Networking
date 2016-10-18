@@ -11,6 +11,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import data.Message;
 import data.PeerReference;
+import data.RoutingTableMessage;
 import data.SearchMessage;
 import java.util.ArrayList;
 import java.util.List;
@@ -61,10 +62,6 @@ public class Peer implements ICommunicationListener, Runnable {
 
         this.processedGuids = new ArrayList<>();
 
-        for (int i = 0; i < Constants.INITIAL_HASHMAP_SIZE; i++) {
-            peerReferences.add(null);
-        }
-
     }
 
     public void Start() {
@@ -78,6 +75,12 @@ public class Peer implements ICommunicationListener, Runnable {
             }
         } else {
             AddBootPeer();
+        }
+
+        int peerReferencesSize = bootPeer ? Constants.P2PSIZE : Constants.INITIAL_HASHMAP_SIZE;
+
+        for (int i = 0; i < peerReferencesSize; i++) {
+            peerReferences.add(null);
         }
 
         server = new Server(port);
@@ -128,7 +131,7 @@ public class Peer implements ICommunicationListener, Runnable {
         peerID = newId;
 
         if (!isDisconnectedFromNetwork()) {
-            RequestPeerReferences(Constants.BOOTPEER_ID);
+            RequestRoutingTable();
         }
     }
 
@@ -355,20 +358,15 @@ public class Peer implements ICommunicationListener, Runnable {
 
     private void AddBootPeer() {
         PeerReference bootPeerRef = new PeerReference(Constants.BOOTPEER_ID, "localhost", Constants.SERVERPORT);
-        if (AddPeerReference(bootPeerRef)) {
-            LOGGER.log(Level.INFO, "Peer {0} registered boot peer reference.", peerID);
-        }
-    }
+        setLastPeerRequest(bootPeerRef);
 
-    private void DeleteBootPeer() {
-        PeerReference bootPeerRef = new PeerReference(Constants.BOOTPEER_ID, "localhost", Constants.SERVERPORT);
-        DeletePeerReference(bootPeerRef);
-        LOGGER.log(Level.INFO, "Peer {0} deleted boot peer reference.", peerID);
+        LOGGER.log(Level.INFO, "Peer {0} registered boot peer reference.", peerID);
+
     }
 
     public void JoinNetwork() {
 
-        if (peerID == Constants.DISCONNECTED_PEERID) {
+        if (isDisconnectedFromNetwork()) {
             RequestPeerId(Constants.BOOTPEER_ID);
         }
 
@@ -388,11 +386,14 @@ public class Peer implements ICommunicationListener, Runnable {
         LOGGER.log(Level.INFO, "Peer is disconnected! Peer id set to {0}", Constants.DISCONNECTED_PEERID);
     }
 
-    private void RequestPeerReferences(int connectionId) {
+    private void RequestRoutingTable() {
         int idToFind = -1;
         PeerReference ownRef = new PeerReference(peerID, getAddress(), getPort());
+        
+        RoutingTableMessage routingTableRequest = MessageParser.CreateRoutingTableRequest(peerID);
 
-        for (int i = 0; i < peerReferences.size(); i++) {
+        clientMessageQueue.add(routingTableRequest);
+       /* for (int i = 0; i < peerReferences.size(); i++) {
 
             idToFind = Math.floorMod((int) (peerID + Math.pow(2, i)), Constants.P2PSIZE);
 
@@ -400,10 +401,10 @@ public class Peer implements ICommunicationListener, Runnable {
                 continue;
             }
 
-            SearchMessage requestPeerMessage = MessageParser.CreateSearchPeerMessage(connectionId, ownRef, idToFind);
+            R requestPeerMessage = MessageParser.CreateSearchPeerMessage(Cons, ownRef, idToFind);
 
             clientMessageQueue.add(requestPeerMessage);
-        }
+        }*/
 
     }
 
@@ -413,11 +414,13 @@ public class Peer implements ICommunicationListener, Runnable {
     }
 
     private boolean isDisconnectedFromNetwork() {
-        return peerID == Constants.DISCONNECTED_PEERID;
+        return peerID == Constants.DISCONNECTED_PEERID || bootPeer;
     }
 
     public void setBootPeer(boolean active) {
         bootPeer = active;
+
+        SetID((byte) Constants.BOOTPEER_ID);
     }
 
     public int getId() {
@@ -598,6 +601,10 @@ public class Peer implements ICommunicationListener, Runnable {
                 break;
             case Constants.MSG_REQUEST_PEERID:
 
+                //Only for bootpeers
+                if(!bootPeer)
+                    break;
+                
                 for (int i = 0; i < availablePeerIds.size(); i++) {
                     int assignedId = availablePeerIds.get(i);
                     server.writeMessage(MessageParser.CreatePeerIDMessage(assignedId));
@@ -605,7 +612,7 @@ public class Peer implements ICommunicationListener, Runnable {
                     availablePeerIds.remove(i);
                     break;
                 }
-
+                
                 break;
 
             case Constants.MSG_JOIN:
@@ -640,6 +647,12 @@ public class Peer implements ICommunicationListener, Runnable {
                     PeerReference foundRef = GetPeerReferenceById(targetId);
                     PeerReference sourceRef = requestMsg.getSourcePeerReference();
 
+                    if(foundRef == null)
+                    {
+                        LOGGER.log(Level.WARNING, "Peer {0} does not have a full reference to id {1}", new Object[]{peerID, targetId});
+                        break;
+                    }
+                    
                     SearchMessage responseFoundMessage = MessageParser.CreateSearchPeerFoundMessage(sourceRef.getId(), sourceRef, foundRef);
 
                     LOGGER.log(Level.INFO, "Peer " + peerID + " sending back peer reference {0}", foundRef);
@@ -689,6 +702,30 @@ public class Peer implements ICommunicationListener, Runnable {
 
                     LOGGER.log(Level.INFO, "Server {0} added {1}", new Object[]{peerID, newlyAcuiredPeerRef});
                 }
+                break;
+                
+            case Constants.MSG_REQUEST_ROUTINGTABLE:
+                
+                //Only supported on bootpeer
+                if(!bootPeer)
+                    break;
+                
+                RoutingTableMessage routingTableRequest = (RoutingTableMessage) recievedMsg;
+                
+                int targetPeerId = routingTableRequest.getSourceId();
+                
+                List<PeerReference> routingTableCopy = new ArrayList<>();
+                for (int i = 0; i < peerReferences.size(); i++) {
+                    PeerReference peerRef = peerReferences.get(i);
+                    
+                    if(peerRef == null) continue;
+                    
+                    routingTableCopy.add(peerRef);
+                }
+                
+                RoutingTableMessage routingTableResponse = MessageParser.CreateRoutingTableResponse(targetPeerId, routingTableCopy);
+                
+                clientMessageQueue.add(routingTableResponse);                
                 break;
 
         }

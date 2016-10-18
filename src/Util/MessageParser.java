@@ -4,7 +4,11 @@ import Interfaces.IMessage;
 import data.JoinMessage;
 import data.Message;
 import data.PeerReference;
+import data.RoutingTableMessage;
 import data.SearchMessage;
+import java.util.ArrayList;
+import java.util.List;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
@@ -70,6 +74,31 @@ public final class MessageParser {
 
                 searchResponsePeerRef.setGuid(messageGuid);
                 return searchResponsePeerRef;
+                
+            case Constants.MSG_REQUEST_ROUTINGTABLE:
+                
+                int sourceId = jsonObj.getInt("sourceId");
+                
+                RoutingTableMessage routingTableRequest = CreateRoutingTableRequest(sourceId);
+                
+                routingTableRequest.setGuid(messageGuid);
+                
+                return routingTableRequest;
+                
+            case Constants.MSG_RESPONSE_ROUTINGTABLE:
+                
+                JSONArray routingTableJSONArray = jsonObj.getJSONArray("routingTableCopy");
+                List<PeerReference> routingTableCopyResponse = new ArrayList<>();
+                for(int i = 0; i < routingTableJSONArray.length(); i++)
+                {
+                    if(routingTableJSONArray.get(i) == null) continue;
+                    
+                    routingTableCopyResponse.add(DecodeJsonToPeerReference(routingTableJSONArray.getJSONObject(i)));
+                }
+                
+                RoutingTableMessage routingTableResponse = CreateRoutingTableResponse(targetId, routingTableCopyResponse);
+                
+                return routingTableResponse;
             default:
                 Message message = new Message(messageType);
                 message.setMsg(msg);
@@ -78,15 +107,6 @@ public final class MessageParser {
 
                 return message;
         }
-
-        /* if (messageType == Constants.MSG_JOIN) {
-            //,"address":"1201","messageType":6,"id":-1,"portNumber":1201
-            String address = jsonObj.getString("address");
-            int portNumber = jsonObj.getInt("portNumber");
-            message = new Constants(messageId, address, portNumber);
-
-            message.setMsg(msg);
-        }*/
     }
 
     public static PeerReference DecodeJsonToPeerReference(JSONObject jsonObj) {
@@ -168,5 +188,23 @@ public final class MessageParser {
         message.setTargetId(targetConnectionId);
 
         return message;
+    }
+    
+    public static RoutingTableMessage CreateRoutingTableRequest(int sourceId)
+    {
+        RoutingTableMessage routingTableRequestMsg = new RoutingTableMessage(sourceId);
+        
+        routingTableRequestMsg.setTargetId(Constants.BOOTPEER_ID);
+        
+        return routingTableRequestMsg;
+    }
+    
+    public static RoutingTableMessage CreateRoutingTableResponse(int targetId, List<PeerReference> routingTableCopy)
+    {
+        RoutingTableMessage routingTableRequestMsg = new RoutingTableMessage(routingTableCopy);
+        
+        routingTableRequestMsg.setTargetId(targetId);
+        
+        return routingTableRequestMsg;
     }
 }

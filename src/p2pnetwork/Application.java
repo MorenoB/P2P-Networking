@@ -36,7 +36,7 @@ public class Application extends javax.swing.JFrame {
 
     private void StartBootPeer() {
 
-        byte id = 0;
+        byte id = Constants.BOOTPEER_ID;
         Peer peer = new Peer(id, Constants.SERVERPORT);
 
         peer.setBootPeer(true);

@@ -10,6 +10,7 @@
             <file>file:/C:/Projects/P2PNetworking/src/communication/Client.java</file>
             <file>file:/C:/Projects/P2PNetworking/src/data/SearchMessage.java</file>
             <file>file:/C:/Projects/P2PNetworking/src/data/PeerReference.java</file>
+            <file>file:/C:/Projects/P2PNetworking/src/data/RoutingTableMessage.java</file>
             <file>file:/C:/Projects/P2PNetworking/src/data/Message.java</file>
             <file>file:/C:/Projects/P2PNetworking/src/Interfaces/ICommunicationListener.java</file>
             <file>file:/C:/Projects/P2PNetworking/src/Util/MessageParser.java</file>
