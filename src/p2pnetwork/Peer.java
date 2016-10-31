@@ -434,6 +434,11 @@ public class Peer implements ICommunicationListener, Runnable {
     public String getAddress() {
         return server.getAddress();
     }
+    
+    public boolean isBootpeer()
+    {
+        return bootPeer;
+    }
 
     public String getPeerReferences() {
         String readablePeerReferences = "";
