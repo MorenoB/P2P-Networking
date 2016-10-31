@@ -740,7 +740,7 @@ public class Peer implements ICommunicationListener, Runnable {
 
                     SearchMessage responseFoundMessage = MessageParser.CreateSearchPeerFoundMessage(sourceRef.getId(), sourceRef, foundRef);
 
-                    LOGGER.log(Level.INFO, "Peer " + peerID + " sending back peer reference {0}", foundRef);
+                    LOGGER.log(Level.INFO, "Peer " + peerID + " sending back peer reference with id {0}", foundRef.getId());
 
                     //Inform the connection that we have succesfully found the peerRef
                     clientMessageQueue.add(responseFoundMessage);
@@ -760,7 +760,7 @@ public class Peer implements ICommunicationListener, Runnable {
 
                 clientMessageQueue.add(requestMsg);
 
-                LOGGER.log(Level.INFO, "Peer " + peerID + " unable to add peer reference {0} , Informed shortest peer id " + shortestAvailableReference.getId(), requestMsg);
+                LOGGER.log(Level.INFO, "Peer " + peerID + " does not have target search peer req id {0} , Informed shortest peer id " + shortestAvailableReference.getId(), targetId);
                 break;
 
             case Constants.MSG_RESPONSE_CONNECTIONINFO:
@@ -785,8 +785,10 @@ public class Peer implements ICommunicationListener, Runnable {
                         break;
                     }
 
-                    LOGGER.log(Level.INFO, "Server {0} added {1}", new Object[]{peerID, newlyAcuiredPeerRef});
+                    LOGGER.log(Level.INFO, "Server {0} added peer id {1}", new Object[]{peerID, newlyAcuiredPeerRef.getId()});
                 }
+                
+                LOGGER.log(Level.INFO, "Server {0} already has peer id {1}", new Object[]{peerID, newlyAcuiredPeerRef.getId()});
                 break;
 
             case Constants.MSG_REQUEST_ROUTINGTABLE:
