@@ -385,14 +385,13 @@ public class Peer implements ICommunicationListener, Runnable {
     private void RequestRoutingTable() {
         int idToFind = -1;
         PeerReference ownRef = new PeerReference(peerID, getAddress(), getPort());
-        
+
         RoutingTableMessage routingTableRequest = MessageParser.CreateRoutingTableRequest(peerID);
 
         clientMessageQueue.add(routingTableRequest);
     }
-    
-    private void FillRoutingTable(List<PeerReference> routingTableCopy)
-    {
+
+    private void FillRoutingTable(List<PeerReference> routingTableCopy) {
         List<Integer> idsToFind = new ArrayList<Integer>();
         for (int i = 0; i < peerReferences.size(); i++) {
 
@@ -401,18 +400,89 @@ public class Peer implements ICommunicationListener, Runnable {
             if (HasPeerReferenceId(idToFind)) {
                 continue;
             }
-            
+
             idsToFind.add(idToFind);
         }
-        
+
+        //Fill our routing table according to matching ids.
         for (int i = 0; i < idsToFind.size(); i++) {
             for (int j = 0; j < routingTableCopy.size(); j++) {
                 PeerReference peerRef = routingTableCopy.get(j);
-                
-                if(peerRef.getId() == idsToFind.get(i))
+
+                if (peerRef.getId() == idsToFind.get(i)) {
                     AddPeerReference(peerRef);
+                    idsToFind.remove(j);
+                }
             }
         }
+
+        if (idsToFind.isEmpty()) {
+            return;
+        }
+
+        FillRoutingTableWithNearestIds(idsToFind, routingTableCopy);
+    }
+
+    private void FillRoutingTableWithNearestIds(List<Integer> idsToFind, List<PeerReference> routingTableCopy) {
+        for (int i = 0; i < idsToFind.size(); i++) {
+            int idToFind = idsToFind.get(i);
+
+            PeerReference peerRef = FindShortestDistanceFromIdRecursive(idToFind, 0, 0, routingTableCopy);
+
+            if (peerRef != null) {
+                AddPeerReference(peerRef);
+            }
+        }
+    }
+
+    private PeerReference FindShortestDistanceFromIdRecursive(int originalIdToFind, int curDistancePositive, int curDistanceNegative, List<PeerReference> routingTable) {
+        int positiveId = originalIdToFind + curDistancePositive;
+        int negativeId = originalIdToFind - curDistanceNegative;
+
+        //LOGGER.log(Level.INFO, "Trying to search for positive id value {0} and negative id value {1}", new Object[]{positiveId, negativeId});
+        for (int i = 0; i < routingTable.size(); i++) {
+            PeerReference foundPeerRef = null;
+
+            if (routingTable.get(i).getId() == positiveId) {
+                foundPeerRef = routingTable.get(i);
+            }
+
+            if (foundPeerRef == null && routingTable.get(i).getId() == negativeId) {
+                foundPeerRef = routingTable.get(i);
+            }
+
+            if (foundPeerRef == null || HasPeerReferenceId(foundPeerRef.getId())) {
+                continue;
+            }
+
+            return foundPeerRef;
+        }
+
+        int newCurDistancePostive = curDistancePositive + 1;
+        int newCurDistanceNegative = curDistanceNegative + 1;
+
+        if (originalIdToFind + newCurDistancePostive == peerID) {
+            newCurDistancePostive++;
+        }
+
+        if (originalIdToFind - newCurDistanceNegative == peerID) {
+            newCurDistanceNegative++;
+        }
+
+        if (curDistancePositive <= curDistanceNegative && curDistancePositive < Constants.P2PSIZE - 1) {
+
+            /*if(newCurDistancePostive > Constants.P2PSIZE - 1)
+                return null;*/
+            return FindShortestDistanceFromIdRecursive(originalIdToFind, newCurDistancePostive, curDistanceNegative, routingTable);
+        } else if (curDistanceNegative < peerID) {
+
+            /*if(newCurDistanceNegative > peerID)
+                return null;*/
+            return FindShortestDistanceFromIdRecursive(originalIdToFind, curDistancePositive, newCurDistanceNegative, routingTable);
+        }
+
+        return null;
+
     }
 
     private void RequestPeerId(int connectionId) {
@@ -441,9 +511,8 @@ public class Peer implements ICommunicationListener, Runnable {
     public String getAddress() {
         return server.getAddress();
     }
-    
-    public boolean isBootpeer()
-    {
+
+    public boolean isBootpeer() {
         return bootPeer;
     }
 
@@ -528,7 +597,7 @@ public class Peer implements ICommunicationListener, Runnable {
                 clientMessageQueue.add(JoinPeerMsg);
 
                 LOGGER.log(Level.INFO, "Client " + peerID + " recieved peer id = {0}", recievedString);
-                
+
                 if (!isDisconnectedFromNetwork()) {
                     RequestRoutingTable();
                 }
@@ -618,9 +687,10 @@ public class Peer implements ICommunicationListener, Runnable {
             case Constants.MSG_REQUEST_PEERID:
 
                 //Only for bootpeers
-                if(!bootPeer)
+                if (!bootPeer) {
                     break;
-                
+                }
+
                 for (int i = 0; i < availablePeerIds.size(); i++) {
                     int assignedId = availablePeerIds.get(i);
                     server.writeMessage(MessageParser.CreatePeerIDMessage(assignedId));
@@ -628,7 +698,7 @@ public class Peer implements ICommunicationListener, Runnable {
                     availablePeerIds.remove(i);
                     break;
                 }
-                
+
                 break;
 
             case Constants.MSG_JOIN:
@@ -663,12 +733,11 @@ public class Peer implements ICommunicationListener, Runnable {
                     PeerReference foundRef = GetPeerReferenceById(targetId);
                     PeerReference sourceRef = requestMsg.getSourcePeerReference();
 
-                    if(foundRef == null)
-                    {
+                    if (foundRef == null) {
                         LOGGER.log(Level.WARNING, "Peer {0} does not have a full reference to id {1}", new Object[]{peerID, targetId});
                         break;
                     }
-                    
+
                     SearchMessage responseFoundMessage = MessageParser.CreateSearchPeerFoundMessage(sourceRef.getId(), sourceRef, foundRef);
 
                     LOGGER.log(Level.INFO, "Peer " + peerID + " sending back peer reference {0}", foundRef);
@@ -719,38 +788,40 @@ public class Peer implements ICommunicationListener, Runnable {
                     LOGGER.log(Level.INFO, "Server {0} added {1}", new Object[]{peerID, newlyAcuiredPeerRef});
                 }
                 break;
-                
+
             case Constants.MSG_REQUEST_ROUTINGTABLE:
-                
+
                 //Only supported on bootpeer
-                if(!bootPeer)
+                if (!bootPeer) {
                     break;
-                
+                }
+
                 RoutingTableMessage routingTableRequest = (RoutingTableMessage) recievedMsg;
-                
+
                 int targetPeerId = routingTableRequest.getSourceId();
-                
+
                 List<PeerReference> routingTableCopy = new ArrayList<>();
                 for (int i = 0; i < peerReferences.size(); i++) {
                     PeerReference peerRef = peerReferences.get(i);
-                    
-                    if(peerRef == null) continue;
-                    
+
+                    if (peerRef == null) {
+                        continue;
+                    }
+
                     routingTableCopy.add(peerRef);
                 }
-                
+
                 RoutingTableMessage routingTableResponse = MessageParser.CreateRoutingTableResponse(targetPeerId, routingTableCopy);
-                
-                clientMessageQueue.add(routingTableResponse);                
+
+                clientMessageQueue.add(routingTableResponse);
                 break;
-                
+
             case Constants.MSG_RESPONSE_ROUTINGTABLE:
-                
+
                 RoutingTableMessage incomingRoutingTableResponse = (RoutingTableMessage) recievedMsg;
-                
+
                 FillRoutingTable(incomingRoutingTableResponse.getRoutingTableCopy());
-                
-                
+
                 break;
 
         }
