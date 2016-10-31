@@ -185,8 +185,8 @@ public class Peer implements ICommunicationListener, Runnable {
             return;
         }
 
-        if (HasPeerReferenceId(id)) {
-            ConnectToPeerId(id);
+        if(ConnectToPeerId(id))
+        {
             LOGGER.log(Level.INFO, "Peer {0} will connect to id {1}", new Object[]{peerID, id});
             return;
         }
@@ -241,6 +241,9 @@ public class Peer implements ICommunicationListener, Runnable {
         for (int i = 0; i < peerReferences.size(); i++) {
             PeerReference peerRef = peerReferences.get(i);
 
+            if(peerRef == null)
+                continue;
+            
             if (peerRef.getId() != id) {
                 continue;
             }

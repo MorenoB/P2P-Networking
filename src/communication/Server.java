@@ -158,9 +158,9 @@ public class Server implements Runnable {
         try {
             listR.Stop();
 
-            while (listR.isRunning()) {
+            /*while (listR.isRunning()) {
                 //
-            }
+            }*/
 
             listenRunnables.remove(listR);
         } catch (Throwable e) {
@@ -168,9 +168,9 @@ public class Server implements Runnable {
         try {
             sendR.Stop();
 
-            while (sendR.isRunning()) {
+            /*while (sendR.isRunning()) {
                 //
-            }
+            }*/
 
             sendRunnables.remove(sendR);
         } catch (Throwable e) {
