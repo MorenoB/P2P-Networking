@@ -129,10 +129,6 @@ public class Peer implements ICommunicationListener, Runnable {
     private void SetID(byte newId) {
         LOGGER.log(Level.INFO, "Peer " + peerID + " set peerId to {0}", newId);
         peerID = newId;
-
-        if (!isDisconnectedFromNetwork()) {
-            RequestRoutingTable();
-        }
     }
 
     private boolean AddPeerReference(PeerReference newPR) {
@@ -393,19 +389,30 @@ public class Peer implements ICommunicationListener, Runnable {
         RoutingTableMessage routingTableRequest = MessageParser.CreateRoutingTableRequest(peerID);
 
         clientMessageQueue.add(routingTableRequest);
-       /* for (int i = 0; i < peerReferences.size(); i++) {
+    }
+    
+    private void FillRoutingTable(List<PeerReference> routingTableCopy)
+    {
+        List<Integer> idsToFind = new ArrayList<Integer>();
+        for (int i = 0; i < peerReferences.size(); i++) {
 
-            idToFind = Math.floorMod((int) (peerID + Math.pow(2, i)), Constants.P2PSIZE);
+            int idToFind = Math.floorMod((int) (peerID + Math.pow(2, i)), Constants.P2PSIZE);
 
             if (HasPeerReferenceId(idToFind)) {
                 continue;
             }
-
-            R requestPeerMessage = MessageParser.CreateSearchPeerMessage(Cons, ownRef, idToFind);
-
-            clientMessageQueue.add(requestPeerMessage);
-        }*/
-
+            
+            idsToFind.add(idToFind);
+        }
+        
+        for (int i = 0; i < idsToFind.size(); i++) {
+            for (int j = 0; j < routingTableCopy.size(); j++) {
+                PeerReference peerRef = routingTableCopy.get(j);
+                
+                if(peerRef.getId() == idsToFind.get(i))
+                    AddPeerReference(peerRef);
+            }
+        }
     }
 
     private void RequestPeerId(int connectionId) {
@@ -521,6 +528,10 @@ public class Peer implements ICommunicationListener, Runnable {
                 clientMessageQueue.add(JoinPeerMsg);
 
                 LOGGER.log(Level.INFO, "Client " + peerID + " recieved peer id = {0}", recievedString);
+                
+                if (!isDisconnectedFromNetwork()) {
+                    RequestRoutingTable();
+                }
                 break;
         }
     }
@@ -731,6 +742,15 @@ public class Peer implements ICommunicationListener, Runnable {
                 RoutingTableMessage routingTableResponse = MessageParser.CreateRoutingTableResponse(targetPeerId, routingTableCopy);
                 
                 clientMessageQueue.add(routingTableResponse);                
+                break;
+                
+            case Constants.MSG_RESPONSE_ROUTINGTABLE:
+                
+                RoutingTableMessage incomingRoutingTableResponse = (RoutingTableMessage) recievedMsg;
+                
+                FillRoutingTable(incomingRoutingTableResponse.getRoutingTableCopy());
+                
+                
                 break;
 
         }
