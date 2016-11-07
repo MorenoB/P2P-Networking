@@ -187,7 +187,7 @@ public class Peer implements ICommunicationListener, Runnable {
 
         if(ConnectToPeerId(id))
         {
-            LOGGER.log(Level.INFO, "Peer {0} will connect to id {1}", new Object[]{peerID, id});
+            //LOGGER.log(Level.INFO, "Peer {0} will connect to id {1}", new Object[]{peerID, id});
             return;
         }
 
@@ -334,7 +334,8 @@ public class Peer implements ICommunicationListener, Runnable {
         Message msgToSend = clientMessageQueue.peek();
 
         if (msgToSend != null) {
-
+ 
+            LOGGER.log(Level.INFO, "Peer {0} : {1}", new Object[]{peerID, msgToSend.getMsg()});
             //Special case; Close down client if we detect a QUIT message.
             if (clientIsConnected && msgToSend.getMessageType() == Constants.MSG_QUIT) {
                 client.writeMessage(clientMessageQueue.poll());
@@ -517,6 +518,11 @@ public class Peer implements ICommunicationListener, Runnable {
 
     public boolean isBootpeer() {
         return bootPeer;
+    }
+    
+    public ConcurrentLinkedDeque GetMessageQueue()
+    {
+        return clientMessageQueue;
     }
 
     public String getPeerReferences() {
