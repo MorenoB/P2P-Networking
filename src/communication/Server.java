@@ -104,8 +104,8 @@ public class Server implements Runnable {
             listenRunnables.add(listenR);
             sendRunnables.add(sendR);
 
-            Thread listenThread = new Thread(listenR, "Server-ListenRunnable");
-            Thread sendThread = new Thread(sendR, "Server-SendRunnable");
+            Thread listenThread = new Thread(listenR, "Server-ListenRunnable" + port);
+            Thread sendThread = new Thread(sendR, "Server-SendRunnable" + port);
 
             listenThread.start();
             sendThread.start();
@@ -116,7 +116,7 @@ public class Server implements Runnable {
 
         } catch (IOException ex) {
             listeners.stream().forEach((sl) -> {
-                sl.OnServerError();
+                sl.OnServerError(-1);
             });
             LOGGER.log(Level.SEVERE, null, ex);
         }
@@ -155,25 +155,18 @@ public class Server implements Runnable {
         ListenRunnable listR = getListenRunnable(portNr);
         SendRunnable sendR = getSendRunnable(portNr);
 
-        try {
+        if(listR != null)
+        {
             listR.Stop();
 
-            /*while (listR.isRunning()) {
-                //
-            }*/
-
             listenRunnables.remove(listR);
-        } catch (Throwable e) {
         }
-        try {
+        
+        if(sendR != null)
+        {
             sendR.Stop();
 
-            /*while (sendR.isRunning()) {
-                //
-            }*/
-
             sendRunnables.remove(sendR);
-        } catch (Throwable e) {
         }
     }
 

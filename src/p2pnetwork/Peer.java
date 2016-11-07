@@ -337,7 +337,6 @@ public class Peer implements ICommunicationListener, Runnable {
 
         if (msgToSend != null) {
  
-            LOGGER.log(Level.INFO, "Peer {0} : {1}", new Object[]{peerID, msgToSend.getMsg()});
             //Special case; Close down client if we detect a QUIT message.
             if (clientIsConnected && msgToSend.getMessageType() == Constants.MSG_QUIT) {
                 client.writeMessage(clientMessageQueue.poll());
@@ -632,8 +631,13 @@ public class Peer implements ICommunicationListener, Runnable {
     }
 
     @Override
-    public void OnServerError() {
+    public void OnServerError(int portNr) {
         LOGGER.log(Level.SEVERE, "Server {0} has an error!", peerID);
+        
+        if(portNr == -1)
+            return;
+        
+        server.StopConnection(portNr);
 
     }
 
@@ -844,7 +848,7 @@ public class Peer implements ICommunicationListener, Runnable {
 
         }
 
-        
+        LOGGER.log(Level.INFO, "Peer {0} recieved {1}", new Object[]{peerID, recievedMsg.getMsg()});
         lastRecievedMessage = (Message) recievedMsg;
         processedGuids.add(recievedMsg.getGuid());
     }

@@ -67,11 +67,11 @@ class ListenRunnable implements Runnable {
             }
         } catch (Exception e) {
 
-            /*LOGGER.log(Level.SEVERE, name, e);
+            LOGGER.log(Level.SEVERE, name, e);
 
             listeners.stream().forEach((listener) -> {
-                listener.OnClientError();
-            });*/
+                listener.OnServerError(socket.getPort());
+            });
         }
 
         running = false;

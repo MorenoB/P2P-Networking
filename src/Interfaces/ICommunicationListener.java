@@ -17,7 +17,7 @@ public interface ICommunicationListener {
     
     public void OnServerStarted();
     public void OnServerAcceptedConnection();
-    public void OnServerError();
+    public void OnServerError(int portNr);
     
     public void OnServerSentMessage(JSONObject jsonObj);
     public void OnServerRecievedMessage();
