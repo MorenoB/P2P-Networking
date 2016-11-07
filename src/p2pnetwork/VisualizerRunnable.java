@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.DefaultListModel;
+import javax.swing.JLabel;
 
 /**
  *
@@ -24,11 +25,14 @@ public class VisualizerRunnable implements Runnable{
     private DefaultListModel messageQueueModel;
     private List<Peer> peerList = new ArrayList();
     
+    private JLabel lastRecievedMessageLabel;
+    
     private Peer selectedPeer;
     
-    public void Init(DefaultListModel messageQueueModel)
+    public void Init(DefaultListModel messageQueueModel, JLabel lastRecievedMessageLabel)
     {
         this.messageQueueModel = messageQueueModel;
+        this.lastRecievedMessageLabel = lastRecievedMessageLabel;
     }
     
     public void UpdatePeerList(List<Peer> peers)
@@ -42,6 +46,14 @@ public class VisualizerRunnable implements Runnable{
             if(peerList.get(i).getId() == peerId)
                 selectedPeer = peerList.get(i);
         }
+    }
+    
+    private void UpdateLabels()
+    {
+        if(selectedPeer == null || selectedPeer.getLastRecievedMessage() == null) return;
+        
+        String txtToShow = "Last Msg: " + selectedPeer.getLastRecievedMessage().getMsg();
+        lastRecievedMessageLabel.setText(txtToShow);
     }
     
     private void UpdateMessageQueue()
@@ -67,6 +79,7 @@ public class VisualizerRunnable implements Runnable{
         {
             
             UpdateMessageQueue();
+            UpdateLabels();
             try {
                 Thread.sleep(Constants.CYCLEWAIT);
             } catch (InterruptedException ex) {

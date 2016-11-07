@@ -45,6 +45,8 @@ public class Peer implements ICommunicationListener, Runnable {
     private PeerReference lastPeerRequest;
 
     private final List<String> processedGuids;
+    
+    private Message lastRecievedMessage;
 
     private final ConcurrentLinkedDeque<Message> clientMessageQueue;
 
@@ -539,6 +541,11 @@ public class Peer implements ICommunicationListener, Runnable {
     private PeerReference getLastPeerRequest() {
         return lastPeerRequest;
     }
+    
+    public Message getLastRecievedMessage()
+    {
+        return lastRecievedMessage;
+    }
 
     private void setLastPeerRequest(PeerReference newLastPeerRef) {
         if (newLastPeerRef == lastPeerRequest) {
@@ -837,6 +844,8 @@ public class Peer implements ICommunicationListener, Runnable {
 
         }
 
+        
+        lastRecievedMessage = (Message) recievedMsg;
         processedGuids.add(recievedMsg.getGuid());
     }
 
