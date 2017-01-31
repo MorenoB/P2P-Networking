@@ -9,6 +9,7 @@ import data.SearchMessage;
 import java.util.ArrayList;
 import java.util.List;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
@@ -28,14 +29,19 @@ public final class MessageParser {
 
         PeerReference sourcePeerRef = null;
         PeerReference targetPeerRef = null;
+        
+        boolean hasTargetRef = false;
+        int originalSearchForId = -1;
 
         try {
 
             sourcePeerRef = DecodeJsonToPeerReference(jsonObj.getJSONObject("sourcePeerReference"));
             targetPeerRef = DecodeJsonToPeerReference(jsonObj.getJSONObject("targetPeerReference"));
+            
+            hasTargetRef = jsonObj.getBoolean("hasTargetReference");
+            originalSearchForId = jsonObj.getInt("originalSearchId");
 
-        } catch (Exception e) {
-
+        } catch (JSONException e) {
         }
 
         switch (messageType) {
@@ -62,6 +68,11 @@ public final class MessageParser {
                 SearchMessage searchReqPeerRef = CreateSearchPeerMessage(targetId, sourcePeerRef, targetPeerRef.getId());
 
                 searchReqPeerRef.setGuid(messageGuid);
+                
+                searchReqPeerRef.setOriginalSearchId(originalSearchForId);
+                
+                searchReqPeerRef.setHasTargetReference(hasTargetRef);
+                
                 return searchReqPeerRef;
 
             case Constants.MSG_RESPONSE_CONNECTIONINFO:
@@ -73,6 +84,11 @@ public final class MessageParser {
                 SearchMessage searchResponsePeerRef = CreateSearchPeerFoundMessage(targetId, sourcePeerRef, targetPeerRef);
 
                 searchResponsePeerRef.setGuid(messageGuid);
+                
+                searchResponsePeerRef.setOriginalSearchId(originalSearchForId);
+                
+                searchResponsePeerRef.setHasTargetReference(hasTargetRef);
+                
                 return searchResponsePeerRef;
                 
             case Constants.MSG_REQUEST_ROUTINGTABLE:

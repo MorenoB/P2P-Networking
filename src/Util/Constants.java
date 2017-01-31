@@ -35,5 +35,8 @@ public final class Constants {
     public static final int MSG_REQUEST_ROUTINGTABLE = 10;
     public static final int MSG_RESPONSE_ROUTINGTABLE = 11;
     
+    public static final int MSG_REQUEST_CLOSEST = 12;
+    public static final int MSG_RESPOSE_CLOSEST = 13;
+    
     public static final int MSG_JOIN = 6;
 }

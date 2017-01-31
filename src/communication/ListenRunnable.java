@@ -69,6 +69,7 @@ class ListenRunnable implements Runnable {
 
             LOGGER.log(Level.SEVERE, name, e);
 
+            if ("SERVER".equals(name))
             listeners.stream().forEach((listener) -> {
                 listener.OnServerError(socket.getPort());
             });

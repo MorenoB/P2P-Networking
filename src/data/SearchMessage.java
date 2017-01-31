@@ -11,6 +11,10 @@ public class SearchMessage extends Message implements IMessage {
 
     private final PeerReference targetPeerReference;
     private final PeerReference sourcePeerReference;
+    
+    private boolean hasTargetReference = false;
+    
+    private int originalSearchId;
 
     public SearchMessage(boolean onlySearchForConnection, PeerReference sourcePeerReference, PeerReference targetPeerReference) {
         super(onlySearchForConnection ? Constants.MSG_RESPONSE_CONNECTIONINFO : Constants.MSG_RESPONSE_SEARCH_PEERREF);
@@ -28,6 +32,19 @@ public class SearchMessage extends Message implements IMessage {
         this.targetPeerReference = new PeerReference(peerId, "NULL", -1);
     }
 
+    public void setOriginalSearchId(int originalSearchId) {
+        this.originalSearchId = originalSearchId;
+    }
+
+    public int getOriginalSearchId() {
+        return originalSearchId;
+    }
+    
+    public void setHasTargetReference(boolean value)
+    {
+        hasTargetReference = value;
+    }
+
     public PeerReference getTargetPeerReference() {
         return targetPeerReference;
     }
@@ -36,8 +53,8 @@ public class SearchMessage extends Message implements IMessage {
         return sourcePeerReference;
     }
 
-    public boolean getHasTargetPeerReference() {
-        return messageType == Constants.MSG_RESPONSE_CONNECTIONINFO || messageType == Constants.MSG_RESPONSE_SEARCH_PEERREF;
+    public boolean getHasTargetReference() {
+        return hasTargetReference;
     }
 
     @Override

@@ -45,7 +45,7 @@ public class Peer implements ICommunicationListener, Runnable {
     private PeerReference lastPeerRequest;
 
     private final List<String> processedGuids;
-    
+
     private Message lastRecievedMessage;
 
     private final ConcurrentLinkedDeque<Message> clientMessageQueue;
@@ -187,8 +187,7 @@ public class Peer implements ICommunicationListener, Runnable {
             return;
         }
 
-        if(ConnectToPeerId(id))
-        {
+        if (ConnectToPeerId(id)) {
             //LOGGER.log(Level.INFO, "Peer {0} will connect to id {1}", new Object[]{peerID, id});
             return;
         }
@@ -243,9 +242,10 @@ public class Peer implements ICommunicationListener, Runnable {
         for (int i = 0; i < peerReferences.size(); i++) {
             PeerReference peerRef = peerReferences.get(i);
 
-            if(peerRef == null)
+            if (peerRef == null) {
                 continue;
-            
+            }
+
             if (peerRef.getId() != id) {
                 continue;
             }
@@ -336,7 +336,7 @@ public class Peer implements ICommunicationListener, Runnable {
         Message msgToSend = clientMessageQueue.peek();
 
         if (msgToSend != null) {
- 
+
             //Special case; Close down client if we detect a QUIT message.
             if (clientIsConnected && msgToSend.getMessageType() == Constants.MSG_QUIT) {
                 client.writeMessage(clientMessageQueue.poll());
@@ -397,7 +397,7 @@ public class Peer implements ICommunicationListener, Runnable {
     }
 
     private void FillRoutingTable(List<PeerReference> routingTableCopy) {
-        List<Integer> idsToFind = new ArrayList<Integer>();
+        List<Integer> idsToFind = new ArrayList();
         for (int i = 0; i < peerReferences.size(); i++) {
 
             int idToFind = Math.floorMod((int) (peerID + Math.pow(2, i)), Constants.P2PSIZE);
@@ -520,9 +520,8 @@ public class Peer implements ICommunicationListener, Runnable {
     public boolean isBootpeer() {
         return bootPeer;
     }
-    
-    public ConcurrentLinkedDeque GetMessageQueue()
-    {
+
+    public ConcurrentLinkedDeque GetMessageQueue() {
         return clientMessageQueue;
     }
 
@@ -540,9 +539,8 @@ public class Peer implements ICommunicationListener, Runnable {
     private PeerReference getLastPeerRequest() {
         return lastPeerRequest;
     }
-    
-    public Message getLastRecievedMessage()
-    {
+
+    public Message getLastRecievedMessage() {
         return lastRecievedMessage;
     }
 
@@ -633,10 +631,11 @@ public class Peer implements ICommunicationListener, Runnable {
     @Override
     public void OnServerError(int portNr) {
         LOGGER.log(Level.SEVERE, "Server {0} has an error!", peerID);
-        
-        if(portNr == -1)
+
+        if (portNr == -1) {
             return;
-        
+        }
+
         server.StopConnection(portNr);
 
     }
@@ -746,12 +745,12 @@ public class Peer implements ICommunicationListener, Runnable {
                 SearchMessage requestMsg = (SearchMessage) recievedMsg;
 
                 int targetId = requestMsg.getTargetPeerReference().getId();
+                PeerReference sourceRef = requestMsg.getSourcePeerReference();
 
                 if (HasPeerReferenceId(targetId)) {
 
                     //We have found the peerref in our references!
                     PeerReference foundRef = GetPeerReferenceById(targetId);
-                    PeerReference sourceRef = requestMsg.getSourcePeerReference();
 
                     if (foundRef == null) {
                         LOGGER.log(Level.WARNING, "Peer {0} does not have a full reference to id {1}", new Object[]{peerID, targetId});
@@ -761,6 +760,8 @@ public class Peer implements ICommunicationListener, Runnable {
                     SearchMessage responseFoundMessage = MessageParser.CreateSearchPeerFoundMessage(sourceRef.getId(), sourceRef, foundRef);
 
                     LOGGER.log(Level.INFO, "Peer " + peerID + " sending back peer reference with id {0}", foundRef.getId());
+
+                    responseFoundMessage.setHasTargetReference(true);
 
                     //Inform the connection that we have succesfully found the peerRef
                     clientMessageQueue.add(responseFoundMessage);
@@ -776,9 +777,9 @@ public class Peer implements ICommunicationListener, Runnable {
                     break;
                 }
 
-                requestMsg.setTargetId(shortestAvailableReference.getId());
-
-                clientMessageQueue.add(requestMsg);
+                SearchMessage responseNotFoundMessage = MessageParser.CreateSearchPeerFoundMessage(sourceRef.getId(), sourceRef, shortestAvailableReference);
+                responseNotFoundMessage.setHasTargetReference(false);
+                clientMessageQueue.add(responseNotFoundMessage);
 
                 LOGGER.log(Level.INFO, "Peer " + peerID + " does not have target search peer req id {0} , Informed shortest peer id " + shortestAvailableReference.getId(), targetId);
                 break;
@@ -795,20 +796,38 @@ public class Peer implements ICommunicationListener, Runnable {
             case Constants.MSG_RESPONSE_SEARCH_PEERREF:
 
                 SearchMessage searchResponse = (SearchMessage) recievedMsg;
-
+                
                 PeerReference newlyAcuiredPeerRef = searchResponse.getTargetPeerReference();
+                
+                int originalSearchId = searchResponse.getOriginalSearchId();
+                //If we have the target peer ref, add it! 
+                if (searchResponse.getHasTargetReference()) {
 
-                if (!HasPeerReferenceId(newlyAcuiredPeerRef.getId())) {
+                    
 
-                    if (!AddPeerReference(newlyAcuiredPeerRef)) {
-                        setLastPeerRequest(newlyAcuiredPeerRef);
-                        break;
+                    if (!HasPeerReferenceId(newlyAcuiredPeerRef.getId())) {
+
+                        if (!AddPeerReference(newlyAcuiredPeerRef)) {
+                            setLastPeerRequest(newlyAcuiredPeerRef);
+                            break;
+                        }
+
+                        LOGGER.log(Level.INFO, "Server {0} added peer id {1}", new Object[]{peerID, newlyAcuiredPeerRef.getId()});
                     }
 
-                    LOGGER.log(Level.INFO, "Server {0} added peer id {1}", new Object[]{peerID, newlyAcuiredPeerRef.getId()});
+                    LOGGER.log(Level.INFO, "Server {0} already has peer id {1}", new Object[]{peerID, newlyAcuiredPeerRef.getId()});
+                    break;
                 }
                 
-                LOGGER.log(Level.INFO, "Server {0} already has peer id {1}", new Object[]{peerID, newlyAcuiredPeerRef.getId()});
+                PeerReference myPeerRef = new PeerReference(peerID, getAddress(), getPort());
+                
+                //If we haven't recieved the target peer ref, connect to the recommended recieved peer ref and send the same search request.
+                SearchMessage searchRequestMsg = MessageParser.CreateSearchPeerMessage(newlyAcuiredPeerRef.getId(), myPeerRef, originalSearchId);
+                
+                lastPeerRequest = newlyAcuiredPeerRef;
+                
+                clientMessageQueue.add(searchRequestMsg);
+
                 break;
 
             case Constants.MSG_REQUEST_ROUTINGTABLE:
