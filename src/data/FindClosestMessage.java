@@ -17,7 +17,7 @@ public class FindClosestMessage extends Message implements IMessage {
     private int originalSearchId;
 
     public FindClosestMessage(boolean onlySearchForConnection, PeerReference sourcePeerReference, PeerReference targetPeerReference) {
-        super(onlySearchForConnection ? Constants.MSG_RESPONSE_CONNECTIONINFO : Constants.MSG_RESPONSE_SEARCH_PEERREF);
+        super(Constants.MSG_RESPONSE_SEARCH_PEERREF);
         this.msg = "RESPONSE PEER-REFERENCE";
 
         this.sourcePeerReference = sourcePeerReference;
@@ -25,7 +25,7 @@ public class FindClosestMessage extends Message implements IMessage {
     }
 
     public FindClosestMessage(boolean onlySearchForConnection, PeerReference sourcePeerReference, int peerId) {
-        super(onlySearchForConnection ? Constants.MSG_REQUEST_CONNECTIONINFO : Constants.MSG_REQUEST_SEARCH_PEERREF);
+        super(Constants.MSG_REQUEST_SEARCH_PEERREF);
         this.msg = "REQUEST PEER-REFERENCE";
 
         this.sourcePeerReference = sourcePeerReference;

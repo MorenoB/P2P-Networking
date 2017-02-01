@@ -661,41 +661,6 @@ public class Peer implements ICommunicationListener, Runnable {
             case Constants.MSG_MESSAGE:
                 LOGGER.log(Level.INFO, "Server " + peerID + " recieved message = {0}", recievedMsg.getMsg());
                 break;
-            case Constants.MSG_REQUEST_CONNECTIONINFO:
-
-                //Other peer is requesting direct ip address
-                FindClosestMessage recievedSearchRequest = (FindClosestMessage) recievedMsg;
-                PeerReference targetPeerRef = recievedSearchRequest.getTargetPeerReference();
-                PeerReference sourcePeerRef = recievedSearchRequest.getSourcePeerReference();
-
-                if (sourcePeerRef.getId() == peerID) {
-                    LOGGER.log(Level.INFO, "Recieved response! I got information from other peers to {0}", targetPeerRef);
-                    break;
-                }
-
-                int searchedForId = targetPeerRef.getId();
-
-                if (HasPeerReferenceId(searchedForId)) {
-
-                    // If we have got the peerreference, directly send the info back to the source.
-                    targetPeerRef = GetPeerReferenceById(searchedForId);
-                    FindClosestMessage foundTargetPeerMessage = MessageParser.CreateSearchPeerAddressFoundMessage(sourcePeerRef.getId(), sourcePeerRef, targetPeerRef);
-
-                    clientMessageQueue.add(foundTargetPeerMessage);
-                    break;
-                }
-
-                PeerReference shortestNextPR = FindShortestAvailablePeerRef();
-                if (shortestNextPR == null) {
-                    LOGGER.log(Level.WARNING, "Peer {0} unable to find an other active peer :(", peerID);
-                    break;
-                }
-
-                FindClosestMessage searchingForTargetPeer = MessageParser.CreateSearchPeerAddressMessage(shortestNextPR.getId(), sourcePeerRef, targetPeerRef.getId());
-
-                clientMessageQueue.add(searchingForTargetPeer);
-
-                break;
             case Constants.MSG_PEERID:
                 //LOGGER.log(Level.INFO, "Server recieved peer id = {0}", recievedMsg.getMsg());
                 break;
@@ -782,15 +747,6 @@ public class Peer implements ICommunicationListener, Runnable {
                 clientMessageQueue.add(responseNotFoundMessage);
 
                 LOGGER.log(Level.INFO, "Peer " + peerID + " does not have target search peer req id {0} , Informed shortest peer id " + shortestAvailableReference.getId(), targetId);
-                break;
-
-            case Constants.MSG_RESPONSE_CONNECTIONINFO:
-                FindClosestMessage searchConnectionResponse = (FindClosestMessage) recievedMsg;
-
-                PeerReference responseConnectionInfo = searchConnectionResponse.getTargetPeerReference();
-
-                setLastPeerRequest(responseConnectionInfo);
-
                 break;
 
             case Constants.MSG_RESPONSE_SEARCH_PEERREF:

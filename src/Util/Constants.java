@@ -26,9 +26,6 @@ public final class Constants {
     public static final int MSG_PEERID = 3;
     public static final int MSG_REQUEST_PEERID = 4;
     
-    public static final int MSG_REQUEST_CONNECTIONINFO = 5;
-    public static final int MSG_RESPONSE_CONNECTIONINFO = 7;
-    
     public static final int MSG_REQUEST_SEARCH_PEERREF = 8;
     public static final int MSG_RESPONSE_SEARCH_PEERREF = 9;
     

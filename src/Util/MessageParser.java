@@ -56,13 +56,6 @@ public final class MessageParser {
 
                 return joinMessage;
 
-            case Constants.MSG_REQUEST_CONNECTIONINFO:
-
-                FindClosestMessage searchReqConnection = CreateSearchPeerAddressMessage(targetId, sourcePeerRef, targetPeerRef.getId());
-
-                searchReqConnection.setGuid(messageGuid);
-                return searchReqConnection;
-
             case Constants.MSG_REQUEST_SEARCH_PEERREF:
 
                 FindClosestMessage searchReqPeerRef = CreateSearchPeerMessage(targetId, sourcePeerRef, targetPeerRef.getId());
@@ -75,11 +68,6 @@ public final class MessageParser {
                 
                 return searchReqPeerRef;
 
-            case Constants.MSG_RESPONSE_CONNECTIONINFO:
-                FindClosestMessage searchResponseConnection = CreateSearchPeerAddressFoundMessage(targetId, sourcePeerRef, targetPeerRef);
-
-                searchResponseConnection.setGuid(messageGuid);
-                return searchResponseConnection;
             case Constants.MSG_RESPONSE_SEARCH_PEERREF:
                 FindClosestMessage searchResponsePeerRef = CreateSearchPeerFoundMessage(targetId, sourcePeerRef, targetPeerRef);
 
@@ -168,22 +156,6 @@ public final class MessageParser {
         JoinMessage message = new JoinMessage(peerRef);
 
         message.setMsg("Joining peer request.");
-
-        message.setTargetId(targetConnectionId);
-
-        return message;
-    }
-
-    public static FindClosestMessage CreateSearchPeerAddressMessage(int targetConnectionId, PeerReference sourcePeerRef, int id) {
-        FindClosestMessage message = new FindClosestMessage(true, sourcePeerRef, id);
-
-        message.setTargetId(targetConnectionId);
-
-        return message;
-    }
-
-    public static FindClosestMessage CreateSearchPeerAddressFoundMessage(int targetConnectionId, PeerReference sourcePeerRef, PeerReference targetPeerRef) {
-        FindClosestMessage message = new FindClosestMessage(true, sourcePeerRef, targetPeerRef);
 
         message.setTargetId(targetConnectionId);
 
