@@ -5,7 +5,7 @@ import data.JoinMessage;
 import data.Message;
 import data.PeerReference;
 import data.RoutingTableMessage;
-import data.SearchMessage;
+import data.FindClosestMessage;
 import java.util.ArrayList;
 import java.util.List;
 import org.json.JSONArray;
@@ -58,14 +58,14 @@ public final class MessageParser {
 
             case Constants.MSG_REQUEST_CONNECTIONINFO:
 
-                SearchMessage searchReqConnection = CreateSearchPeerAddressMessage(targetId, sourcePeerRef, targetPeerRef.getId());
+                FindClosestMessage searchReqConnection = CreateSearchPeerAddressMessage(targetId, sourcePeerRef, targetPeerRef.getId());
 
                 searchReqConnection.setGuid(messageGuid);
                 return searchReqConnection;
 
             case Constants.MSG_REQUEST_SEARCH_PEERREF:
 
-                SearchMessage searchReqPeerRef = CreateSearchPeerMessage(targetId, sourcePeerRef, targetPeerRef.getId());
+                FindClosestMessage searchReqPeerRef = CreateSearchPeerMessage(targetId, sourcePeerRef, targetPeerRef.getId());
 
                 searchReqPeerRef.setGuid(messageGuid);
                 
@@ -76,12 +76,12 @@ public final class MessageParser {
                 return searchReqPeerRef;
 
             case Constants.MSG_RESPONSE_CONNECTIONINFO:
-                SearchMessage searchResponseConnection = CreateSearchPeerAddressFoundMessage(targetId, sourcePeerRef, targetPeerRef);
+                FindClosestMessage searchResponseConnection = CreateSearchPeerAddressFoundMessage(targetId, sourcePeerRef, targetPeerRef);
 
                 searchResponseConnection.setGuid(messageGuid);
                 return searchResponseConnection;
             case Constants.MSG_RESPONSE_SEARCH_PEERREF:
-                SearchMessage searchResponsePeerRef = CreateSearchPeerFoundMessage(targetId, sourcePeerRef, targetPeerRef);
+                FindClosestMessage searchResponsePeerRef = CreateSearchPeerFoundMessage(targetId, sourcePeerRef, targetPeerRef);
 
                 searchResponsePeerRef.setGuid(messageGuid);
                 
@@ -174,32 +174,32 @@ public final class MessageParser {
         return message;
     }
 
-    public static SearchMessage CreateSearchPeerAddressMessage(int targetConnectionId, PeerReference sourcePeerRef, int id) {
-        SearchMessage message = new SearchMessage(true, sourcePeerRef, id);
+    public static FindClosestMessage CreateSearchPeerAddressMessage(int targetConnectionId, PeerReference sourcePeerRef, int id) {
+        FindClosestMessage message = new FindClosestMessage(true, sourcePeerRef, id);
 
         message.setTargetId(targetConnectionId);
 
         return message;
     }
 
-    public static SearchMessage CreateSearchPeerAddressFoundMessage(int targetConnectionId, PeerReference sourcePeerRef, PeerReference targetPeerRef) {
-        SearchMessage message = new SearchMessage(true, sourcePeerRef, targetPeerRef);
+    public static FindClosestMessage CreateSearchPeerAddressFoundMessage(int targetConnectionId, PeerReference sourcePeerRef, PeerReference targetPeerRef) {
+        FindClosestMessage message = new FindClosestMessage(true, sourcePeerRef, targetPeerRef);
 
         message.setTargetId(targetConnectionId);
 
         return message;
     }
 
-    public static SearchMessage CreateSearchPeerMessage(int targetConnectionId, PeerReference sourcePeerRef, int id) {
-        SearchMessage message = new SearchMessage(false, sourcePeerRef, id);
+    public static FindClosestMessage CreateSearchPeerMessage(int targetConnectionId, PeerReference sourcePeerRef, int id) {
+        FindClosestMessage message = new FindClosestMessage(false, sourcePeerRef, id);
 
         message.setTargetId(targetConnectionId);
 
         return message;
     }
 
-    public static SearchMessage CreateSearchPeerFoundMessage(int targetConnectionId, PeerReference sourcePeerRef, PeerReference targetPeerRef) {
-        SearchMessage message = new SearchMessage(false, sourcePeerRef, targetPeerRef);
+    public static FindClosestMessage CreateSearchPeerFoundMessage(int targetConnectionId, PeerReference sourcePeerRef, PeerReference targetPeerRef) {
+        FindClosestMessage message = new FindClosestMessage(false, sourcePeerRef, targetPeerRef);
 
         message.setTargetId(targetConnectionId);
 

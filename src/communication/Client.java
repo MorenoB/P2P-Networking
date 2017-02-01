@@ -143,21 +143,6 @@ public class Client implements Runnable {
         return isRunning() && !RunnablesHaveStopped();
     }
 
-    /**
-     * Writes a message to the sender buffer.
-     *
-     * @param message XML message.
-     */
-    public void writeMessage(String message) {
-
-        Message msgMessage = new Message(Constants.MSG_MESSAGE);
-        msgMessage.setMsg(message);
-
-        JSONObject jsonObj = new JSONObject(msgMessage);
-
-        sendRunnable.writeMessage(jsonObj);
-    }
-
     public void writeMessage(IMessage message) {
 
         JSONObject jsonObj = new JSONObject(message);
