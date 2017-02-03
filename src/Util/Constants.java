@@ -36,4 +36,6 @@ public final class Constants {
     public static final int MSG_RESPOSE_CLOSEST = 13;
     
     public static final int MSG_JOIN = 6;
+    
+    public enum PEER_STATUS { FINDINGCLOSEST, RESPONDING, SENDINGMSG, IDLE, JOINING, COPYINGROUTETABLE }
 }

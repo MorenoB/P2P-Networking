@@ -77,7 +77,7 @@ public class Application extends javax.swing.JFrame {
             
             String suffix = peer.isBootpeer() ? "(BOOT) " : "";
             
-            String displayName = suffix + "Peer " + peer.getId() + " references= " + peer.getPeerReferences();
+            String displayName = suffix + "Peer " + peer.getId() + " status= " + peer.GetPeerStatus() + " references= " + peer.getPeerReferences();
 
             peerListModel.add(i, displayName);
         }
