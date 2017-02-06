@@ -2,6 +2,7 @@ package p2pnetwork;
 
 import Interfaces.ICommunicationListener;
 import Interfaces.IMessage;
+import Interfaces.IPeerListener;
 import Util.Constants;
 import Util.MessageParser;
 import communication.Server;
@@ -25,6 +26,7 @@ import org.json.JSONObject;
 public class Peer implements ICommunicationListener, Runnable {
 
     private static final Logger LOGGER = Logger.getLogger(Peer.class.getCanonicalName());
+    public final List<IPeerListener> peerListeners = new ArrayList<>();
 
     public boolean isRunning;
 
@@ -613,6 +615,7 @@ public class Peer implements ICommunicationListener, Runnable {
     }
 
     private int getNextAvailableId() {
+        System.out.println(availablePeerIds.size());
         for (int i = 0; i < availablePeerIds.size(); i++) {
             int assignedId = availablePeerIds.get(i);
             availablePeerIds.remove(i);
@@ -669,6 +672,9 @@ public class Peer implements ICommunicationListener, Runnable {
     @Override
     public void OnClientSentMessage(JSONObject jsonObj) {
         LOGGER.log(Level.INFO, "Client " + peerID + " has sent {0}", jsonObj);
+        peerListeners.stream().forEach((sl) -> {
+            sl.OnMessageSent();
+        });
     }
 
     @Override
@@ -825,6 +831,8 @@ public class Peer implements ICommunicationListener, Runnable {
                     
                     break;
                 }
+                
+                LOGGER.log(Level.INFO, "Peer {0} does not have received the target peer ref, will connect to {1} instead." , new Object[]{ getId(), newlyAcuiredPeerRef.getId() });
 
                 PeerReference myPeerRef = new PeerReference(peerID, getAddress(), getPort());
 
@@ -832,14 +840,16 @@ public class Peer implements ICommunicationListener, Runnable {
                 FindClosestMessage searchRequestMsg = MessageParser.CreateSearchPeerMessage(newlyAcuiredPeerRef.getId(), myPeerRef, originalSearchId);
 
                 lastPeerRequest = newlyAcuiredPeerRef;
-
-                clientMessageQueue.add(searchRequestMsg);
+ 
+                SendMessageToPeerReference(searchRequestMsg, newlyAcuiredPeerRef);
 
                 break;
 
             case Constants.MSG_RESPONSE_ROUTINGTABLE:
 
                 RoutingTableMessage incomingRoutingTableResponse = (RoutingTableMessage) recievedMsg;
+                
+                SetID((byte)incomingRoutingTableResponse.getTargetId());
 
                 FillRoutingTable(incomingRoutingTableResponse.getRoutingTableCopy());
                 peerStatus = Constants.PEER_STATUS.IDLE;
@@ -851,6 +861,10 @@ public class Peer implements ICommunicationListener, Runnable {
         LOGGER.log(Level.INFO, "Peer {0} recieved {1}", new Object[]{peerID, recievedMsg.getMsg()});
         lastRecievedMessage = (Message) recievedMsg;
         processedGuids.add(recievedMsg.getGuid());
+        
+        peerListeners.stream().forEach((sl) -> {
+            sl.OnMessageReceived();
+        });
     }
 
     @Override

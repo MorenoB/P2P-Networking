@@ -5,6 +5,7 @@
  */
 package p2pnetwork;
 
+import Interfaces.IPeerListener;
 import Util.Constants;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,7 +15,7 @@ import javax.swing.DefaultListModel;
  *
  * @author Moreno
  */
-public class Application extends javax.swing.JFrame {
+public class Application extends javax.swing.JFrame implements IPeerListener{
 
     private DefaultListModel peerListModel;
     private DefaultListModel messageQueueModel;
@@ -52,7 +53,8 @@ public class Application extends javax.swing.JFrame {
 
         peer.setBootPeer(true);
         peer.Start();
-
+        peer.peerListeners.add(this);
+        
         Thread peerThread = new Thread(peer);
         peerThread.start();
 
@@ -246,6 +248,7 @@ public class Application extends javax.swing.JFrame {
         Peer newPeer = new Peer(id, Integer.parseInt(field_Port.getText()));
 
         newPeer.Start();
+        newPeer.peerListeners.add(this);
 
         Thread peerThread = new Thread(newPeer);
         peerThread.start();
@@ -342,4 +345,14 @@ public class Application extends javax.swing.JFrame {
     private javax.swing.JList<String> list_peerList;
     private javax.swing.JTextField textfield_PeerId;
     // End of variables declaration//GEN-END:variables
+
+    @Override
+    public void OnMessageReceived() {
+        UpdatePeerListData();
+    }
+
+    @Override
+    public void OnMessageSent() {
+        //UpdatePeerListData();
+    }
 }
