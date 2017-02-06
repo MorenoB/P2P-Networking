@@ -29,7 +29,6 @@ public final class Constants {
     public static final int MSG_REQUEST_SEARCH_PEERREF = 8;
     public static final int MSG_RESPONSE_SEARCH_PEERREF = 9;
     
-    public static final int MSG_REQUEST_ROUTINGTABLE = 10;
     public static final int MSG_RESPONSE_ROUTINGTABLE = 11;
     
     public static final int MSG_REQUEST_CLOSEST = 12;
@@ -37,5 +36,5 @@ public final class Constants {
     
     public static final int MSG_JOIN = 6;
     
-    public enum PEER_STATUS { FINDINGCLOSEST, RESPONDING, SENDINGMSG, IDLE, JOINING, COPYINGROUTETABLE }
+    public enum PEER_STATUS { WAITINGFORCLOSESTRESPONSE, RESPONDING, SENDINGMSG, IDLE, JOINING, COPYINGROUTETABLE }
 }

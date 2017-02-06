@@ -79,15 +79,6 @@ public final class MessageParser {
                 
                 return searchResponsePeerRef;
                 
-            case Constants.MSG_REQUEST_ROUTINGTABLE:
-                
-                int sourceId = jsonObj.getInt("sourceId");
-                
-                RoutingTableMessage routingTableRequest = CreateRoutingTableRequest(sourceId);
-                
-                routingTableRequest.setGuid(messageGuid);
-                
-                return routingTableRequest;
                 
             case Constants.MSG_RESPONSE_ROUTINGTABLE:
                 
@@ -177,15 +168,6 @@ public final class MessageParser {
         message.setTargetId(targetConnectionId);
 
         return message;
-    }
-    
-    public static RoutingTableMessage CreateRoutingTableRequest(int sourceId)
-    {
-        RoutingTableMessage routingTableRequestMsg = new RoutingTableMessage(sourceId);
-        
-        routingTableRequestMsg.setTargetId(Constants.BOOTPEER_ID);
-        
-        return routingTableRequestMsg;
     }
     
     public static RoutingTableMessage CreateRoutingTableResponse(int targetId, List<PeerReference> routingTableCopy)
