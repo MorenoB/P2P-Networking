@@ -120,7 +120,8 @@ public class Peer implements ICommunicationListener, Runnable {
         Message quitMesssage = MessageParser.CreateQuitMessage(connectedToOtherId, port);
 
         if (instant) {
-            client.writeMessage(quitMesssage);
+            //client.writeMessage(quitMesssage);
+            client.StopConnection();
             return;
         }
         if (clientMessageQueue.peek() == null) {
@@ -793,6 +794,17 @@ public class Peer implements ICommunicationListener, Runnable {
                 if (searchResponse.getHasTargetReference()) {
 
                     Message debugMsg = new Message("NOT IMPLEMENTED");
+                    
+                    if(clientMessageQueue.peek().getMessageType() == Constants.MSG_MESSAGE)
+                    {
+                        debugMsg = clientMessageQueue.poll();
+                    }
+                    else if(clientMessageQueue.peek().getMessageType() == Constants.MSG_REQUEST_SEARCH_PEERREF)
+                    {
+                        clientMessageQueue.poll();
+                        debugMsg = clientMessageQueue.poll();
+                    }
+                    
                     SendMessageToPeerReference(debugMsg ,newlyAcuiredPeerRef);
 
                     peerStatus = Constants.PEER_STATUS.SENDINGMSG;
