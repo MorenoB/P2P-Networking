@@ -10,7 +10,6 @@ import java.util.logging.Logger;
 import Interfaces.ICommunicationListener;
 import Interfaces.IMessage;
 import Util.MessageParser;
-import data.Message;
 import org.json.JSONObject;
 
 /**

@@ -56,11 +56,7 @@ class SendRunnable implements Runnable {
 
                 out.flush();
 
-                if ("SERVER".equals(name)) {
-                    listeners.stream().forEach((listener) -> {
-                        listener.OnServerSentMessage(lastObj);
-                    });
-                } else {
+                if ("CLIENT".equals(name)) {
                     listeners.stream().forEach((listener) -> {
                         listener.OnClientSentMessage(lastObj);
                     });

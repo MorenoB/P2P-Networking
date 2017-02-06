@@ -688,11 +688,6 @@ public class Peer implements ICommunicationListener, Runnable {
     }
 
     @Override
-    public void OnServerSentMessage(JSONObject jsonObj) {
-        LOGGER.log(Level.INFO, "Server " + peerID + " has sent {0}", jsonObj);
-    }
-
-    @Override
     public void OnServerRecievedMessage() {
 
         IMessage recievedMsg = server.getMessage();
@@ -724,7 +719,7 @@ public class Peer implements ICommunicationListener, Runnable {
 
                 for (int i = 0; i < availablePeerIds.size(); i++) {
                     int assignedId = availablePeerIds.get(i);
-                    server.writeMessage(MessageParser.CreatePeerIDMessage(assignedId));
+                    clientMessageQueue.add(MessageParser.CreatePeerIDMessage(assignedId));
 
                     availablePeerIds.remove(i);
                     break;
@@ -773,7 +768,7 @@ public class Peer implements ICommunicationListener, Runnable {
                     responseFoundMessage.setHasTargetReference(true);
 
                     //Inform the connection that we have succesfully found the peerRef
-                    server.writeMessage(responseFoundMessage);
+                    clientMessageQueue.add(responseFoundMessage);
 
                     break;
                 }
