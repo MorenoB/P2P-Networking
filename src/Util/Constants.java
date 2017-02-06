@@ -23,7 +23,7 @@ public final class Constants {
     //Message types
     public static final int MSG_QUIT = 1;
     public static final int MSG_MESSAGE = 2;
-    public static final int MSG_PEERID = 3;
+    public static final int MSG_PEERID_RESPONSE = 3;
     public static final int MSG_REQUEST_PEERID = 4;
     
     public static final int MSG_REQUEST_SEARCH_PEERREF = 8;

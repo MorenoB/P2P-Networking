@@ -247,8 +247,6 @@ public class Application extends javax.swing.JFrame {
 
         newPeer.Start();
 
-        newPeer.JoinNetwork();
-
         Thread peerThread = new Thread(newPeer);
         peerThread.start();
 

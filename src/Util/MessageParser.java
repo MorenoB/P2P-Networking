@@ -123,9 +123,10 @@ public final class MessageParser {
     }
 
     public static Message CreatePeerIDMessage(int peerId) {
-        Message message = new Message(Constants.MSG_PEERID);
+        Message message = new Message(Constants.MSG_PEERID_RESPONSE);
 
         message.setMsg(Integer.toString(peerId));
+        message.setTargetId(peerId);
 
         return message;
     }
