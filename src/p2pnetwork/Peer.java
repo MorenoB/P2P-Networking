@@ -52,8 +52,6 @@ public class Peer implements ICommunicationListener, Runnable {
 
     private Constants.PEER_STATUS peerStatus;
 
-    private final List<Message> messagePool;
-
     public Peer(byte peerID, int port) {
 
         this.clientMessageQueue = new ConcurrentLinkedDeque<>();
@@ -68,7 +66,6 @@ public class Peer implements ICommunicationListener, Runnable {
         this.processedGuids = new ArrayList<>();
 
         this.peerStatus = Constants.PEER_STATUS.IDLE;
-        this.messagePool = new ArrayList<>();
     }
 
     public void Start() {
@@ -84,11 +81,7 @@ public class Peer implements ICommunicationListener, Runnable {
             AddBootPeer();
         }
 
-        int peerReferencesSize = bootPeer ? Constants.P2PSIZE : Constants.INITIAL_HASHMAP_SIZE;
-
-        for (int i = 0; i < peerReferencesSize; i++) {
-            peerReferences.add(null);
-        }
+        ResetPeerReferencesList();
 
         server = new Server(port);
 
@@ -104,6 +97,18 @@ public class Peer implements ICommunicationListener, Runnable {
         serverThread.start();
 
         clientThread.start();
+    }
+    
+    private void ResetPeerReferencesList()
+    {
+        int peerReferencesSize = isBootpeer() ? Constants.P2PSIZE : Constants.INITIAL_HASHMAP_SIZE;
+
+        if(peerReferences.size() > 0)
+            peerReferences.clear();
+        
+        for (int i = 0; i < peerReferencesSize; i++) {
+            peerReferences.add(null);
+        }
     }
 
     private void ConnectToAddress(String ipAddress, int port) {
@@ -421,9 +426,15 @@ public class Peer implements ICommunicationListener, Runnable {
 
     private void FillRoutingTable(List<PeerReference> routingTableCopy) {
         List<Integer> idsToFind = new ArrayList();
+        
+        ResetPeerReferencesList();
+        
         for (int i = 0; i < peerReferences.size(); i++) {
-
-            int idToFind = Math.floorMod((int) (peerID + Math.pow(2, i)), Constants.P2PSIZE);
+            
+            int idToFind = (int) (peerID + Math.pow(2, i));
+            
+            if(idToFind > Constants.P2PSIZE)
+                idToFind = Math.floorMod(idToFind, Constants.P2PSIZE);
 
             if (HasPeerReferenceId(idToFind)) {
                 continue;
@@ -438,8 +449,10 @@ public class Peer implements ICommunicationListener, Runnable {
                 PeerReference peerRef = routingTableCopy.get(j);
 
                 if (peerRef.getId() == idsToFind.get(i)) {
+                    LOGGER.log(Level.INFO, "Peer {0} will add peer {1}", new Object[]{getId(),idsToFind.get(i)  });
                     AddPeerReference(peerRef);
                     idsToFind.remove(i);
+                    break;
                 }
             }
         }
@@ -448,14 +461,14 @@ public class Peer implements ICommunicationListener, Runnable {
             return;
         }
 
-        FillRoutingTableWithNearestIds(idsToFind, routingTableCopy);
+        FillEmptyRoutingTableSpotsWithNearestIds(idsToFind, routingTableCopy);
     }
 
     public String GetPeerStatus() {
         return peerStatus.toString();
     }
 
-    private void FillRoutingTableWithNearestIds(List<Integer> idsToFind, List<PeerReference> routingTableCopy) {
+    private void FillEmptyRoutingTableSpotsWithNearestIds(List<Integer> idsToFind, List<PeerReference> routingTableCopy) {
         for (int i = 0; i < idsToFind.size(); i++) {
             int idToFind = idsToFind.get(i);
 
