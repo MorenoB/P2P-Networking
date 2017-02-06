@@ -639,33 +639,6 @@ public class Peer implements ICommunicationListener, Runnable {
     }
 
     @Override
-    public void OnClientRecievedMessage() {
-
-        IMessage recievedMsg = client.getMessage();
-
-        switch (recievedMsg.getMessageType()) {
-            case Constants.MSG_PEERID:
-
-                String recievedString = recievedMsg.getMsg();
-                Byte recievedId = Byte.parseByte(recievedString);
-                SetID(recievedId);
-
-                //After recieving a peerid, request to join the network.
-                JoinMessage JoinPeerMsg = MessageParser.CreateJoinPeerMessage(Constants.BOOTPEER_ID, peerID, getAddress(), getPort());
-
-                clientMessageQueue.add(JoinPeerMsg);
-
-                LOGGER.log(Level.INFO, "Client " + peerID + " recieved peer id = {0}", recievedString);
-
-                if (!isDisconnectedFromNetwork()) {
-                    RequestRoutingTable();
-                    
-                }
-                break;
-        }
-    }
-
-    @Override
     public void OnServerStarted() {
         LOGGER.log(Level.INFO, "Server {0} started!", peerID);
     }

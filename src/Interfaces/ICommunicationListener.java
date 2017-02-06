@@ -13,7 +13,6 @@ public interface ICommunicationListener {
     public void OnClientError();
     
     public void OnClientSentMessage(JSONObject jsonObj);
-    public void OnClientRecievedMessage();
     
     public void OnServerStarted();
     public void OnServerAcceptedConnection();

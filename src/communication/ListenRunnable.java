@@ -59,10 +59,6 @@ class ListenRunnable implements Runnable {
                     listeners.stream().forEach((listener) -> {
                         listener.OnServerRecievedMessage();
                     });
-                } else {
-                    listeners.stream().forEach((listener) -> {
-                        listener.OnClientRecievedMessage();
-                    });
                 }
             }
         } catch (Exception e) {

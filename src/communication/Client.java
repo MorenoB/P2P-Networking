@@ -9,7 +9,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import Interfaces.ICommunicationListener;
 import Interfaces.IMessage;
-import Util.MessageParser;
 import org.json.JSONObject;
 
 /**
@@ -23,7 +22,6 @@ public class Client implements Runnable {
     private boolean hasConnection;
     private boolean running;
 
-    private ListenRunnable listenRunnable;
     private SendRunnable sendRunnable;
     private Socket connectedSocket;
 
@@ -49,10 +47,6 @@ public class Client implements Runnable {
     public void AddListener(ICommunicationListener toAdd) {
         listeners.add(toAdd);
 
-        if (listenRunnable != null) {
-            listenRunnable.AddListener(toAdd);
-        }
-
         if (sendRunnable != null) {
             sendRunnable.AddListener(toAdd);
         }
@@ -71,16 +65,12 @@ public class Client implements Runnable {
             connectedSocket = new Socket(host, port);
             hasConnection = connectedSocket.isConnected();
 
-            listenRunnable = new ListenRunnable("CLIENT", connectedSocket);
             sendRunnable = new SendRunnable("CLIENT", connectedSocket);
 
-            listenRunnable.UpdateListeners(listeners);
             sendRunnable.UpdateListeners(listeners);
 
-            Thread listenThread = new Thread(listenRunnable, "Client-ListenRunnable");
             Thread sendThread = new Thread(sendRunnable, "Client-SendRunnable");
 
-            listenThread.start();
             sendThread.start();
 
             listeners.stream().forEach((sl) -> {
@@ -110,8 +100,6 @@ public class Client implements Runnable {
     public void StopConnection() {
         LOGGER.log(Level.INFO, "Shutting down client.");
 
-        listenRunnable.Stop();
-
         sendRunnable.Stop();
 
         try {
@@ -126,16 +114,12 @@ public class Client implements Runnable {
     }
 
     private boolean RunnablesHaveStopped() {
-        return listenRunnable == null || sendRunnable == null || !listenRunnable.isRunning() || !sendRunnable.isRunning();
+        return sendRunnable == null || !sendRunnable.isRunning();
     }
 
     public void Stop() {
         StopConnection();
         running = false;
-    }
-
-    public IMessage getMessage() {
-        return MessageParser.DecodeJSON(listenRunnable.getRawMessage());
     }
 
     public boolean isReady() {
