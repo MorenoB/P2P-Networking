@@ -2,12 +2,15 @@ package communication;
 
 import Interfaces.ICommunicationListener;
 import Util.Constants;
+import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.json.JSONObject;
 
 /**
  * Sender thread.
@@ -15,27 +18,33 @@ import java.util.logging.Logger;
 class SendRunnable implements Runnable {
 
     private List<ICommunicationListener> listeners = new ArrayList<>();
-    private final PrintWriter out;
-    private final ConcurrentLinkedQueue<String> queue;
+    private PrintWriter out;
+    private final ConcurrentLinkedQueue<JSONObject> queue;
+    private final Socket socket;
     private boolean running;
     private final String name;
 
     private static final Logger LOGGER = Logger.getLogger(SendRunnable.class.getCanonicalName());
 
-    public SendRunnable(String name, PrintWriter out) {
+    public SendRunnable(String name, Socket socket) {
         this.name = name;
-        this.out = out;
+        this.socket = socket;
         this.queue = new ConcurrentLinkedQueue<>();
+
+        try {
+            this.out = new PrintWriter(socket.getOutputStream(), true);
+        } catch (IOException ex) {
+            LOGGER.log(Level.SEVERE, null, ex);
+        }
     }
 
     @Override
     public void run() {
-        String outputLine;
         running = true;
 
         while (running) {
-            outputLine = queue.poll();
-            if (outputLine == null) {
+            JSONObject lastObj = queue.poll();
+            if (lastObj == null) {
                 try {
                     Thread.sleep(Constants.CYCLEWAIT);
                 } catch (Throwable e) {
@@ -43,20 +52,25 @@ class SendRunnable implements Runnable {
                 }
             } else {
                 // Send outputLine
-                out.println(outputLine);
+                out.println(lastObj);
 
-                if ("SERVER".equals(name)) {
+                out.flush();
+
+                if ("CLIENT".equals(name)) {
                     listeners.stream().forEach((listener) -> {
-                        listener.OnServerSentMessage();
-                    });
-                } else {
-                    listeners.stream().forEach((listener) -> {
-                        listener.OnClientSentMessage();
+                        listener.OnClientSentMessage(lastObj);
                     });
                 }
-                LOGGER.log(Level.INFO, name + " sent {0}", outputLine);
             }
         }
+    }
+
+    public Socket getSocket() {
+        return socket;
+    }
+
+    public int getPort() {
+        return socket.getPort();
     }
 
     public void UpdateListeners(List<ICommunicationListener> newListeners) {
@@ -67,12 +81,15 @@ class SendRunnable implements Runnable {
         listeners.add(listener);
     }
 
-    public void stop() {
-        LOGGER.log(Level.INFO, "{0} stopping Send Runnable...", name);
+    public void Stop() {
+        //LOGGER.log(Level.INFO, "{0} stopping Send Runnable...", name);
+
+        out.close();
+
         running = false;
     }
 
-    public void writeMessage(String message) {
+    public void writeMessage(JSONObject message) {
         queue.add(message);
     }
 

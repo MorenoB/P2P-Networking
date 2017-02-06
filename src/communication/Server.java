@@ -1,20 +1,17 @@
 package communication;
 
 import Interfaces.ICommunicationListener;
+import Interfaces.IMessage;
 import Util.Constants;
 import Util.MessageParser;
-import communication.messages.Message;
-import java.io.BufferedReader;
+import data.Message;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.json.JSONObject;
 
 /**
  *
@@ -24,15 +21,21 @@ public class Server implements Runnable {
 
     private final List<ICommunicationListener> listeners = new ArrayList<>();
 
-    private Socket connectedSocket;
+    private ServerSocket serverSocket;
 
     private boolean running;
-    private boolean isWaitingForConnection;
 
-    private ListenRunnable listenRunnable;
-    private SendRunnable sendRunnable;
+    private final int port;
+
+    private final List<ListenRunnable> listenRunnables;
 
     private static final Logger LOGGER = Logger.getLogger(Server.class.getCanonicalName());
+
+    public Server(int port) {
+
+        listenRunnables = new ArrayList<>();
+        this.port = port;
+    }
 
     @Override
     public void run() {
@@ -41,131 +44,125 @@ public class Server implements Runnable {
 
         running = true;
 
-        while (running) {
-            if (!isWaitingForConnection) {
-                ListenForConnection();
-            }
+        try {
+            serverSocket = new ServerSocket(port);
 
-            /*if(RunnablesHaveStopped())
-            {
-                LOGGER.log(Level.SEVERE, "ListenRunnable/SendRunnable stopped running! Shutting down connection...");
-                StopConnection();
-            }*/
+            listeners.stream().forEach((sl) -> {
+                sl.OnServerStarted();
+            });
+        } catch (IOException ex) {
+            LOGGER.log(Level.SEVERE, null, ex);
+        }
+
+        while (running) {
+
             try {
                 Thread.sleep(Constants.CYCLEWAIT);
             } catch (InterruptedException ex) {
                 LOGGER.log(Level.SEVERE, null, ex);
             }
+
+            ListenForConnection();
+
         }
     }
 
     public void AddListener(ICommunicationListener toAdd) {
         listeners.add(toAdd);
 
-        if (listenRunnable != null) {
-            listenRunnable.AddListener(toAdd);
-        }
-
-        if (sendRunnable != null) {
-            sendRunnable.AddListener(toAdd);
+        for (int i = 0; i < listenRunnables.size(); i++) {
+            listenRunnables.get(i).AddListener(toAdd);
         }
     }
 
     private void ListenForConnection() {
         try {
-            isWaitingForConnection = true;
 
-            ServerSocket server = new ServerSocket(Constants.SERVERPORT);
+            Socket connectedSocket = serverSocket.accept();
 
-            listeners.stream().forEach((sl) -> {
-                sl.OnServerStarted();
-            });
-            LOGGER.log(Level.INFO, "Waiting for client");
+            //LOGGER.log(Level.INFO, "Accepted connection {0} at server connection " + serverSocket.getInetAddress().getHostName(), connectedSocket.getInetAddress().getHostAddress());
 
-            connectedSocket = server.accept();
+            ListenRunnable listenR = new ListenRunnable("SERVER", connectedSocket);
+            
+            listenR.UpdateListeners(listeners);
+
+            listenRunnables.add(listenR);
+
+            Thread listenThread = new Thread(listenR, "Server-ListenRunnable" + port);
+
+            listenThread.start();
 
             listeners.stream().forEach((sl) -> {
                 sl.OnServerAcceptedConnection();
             });
 
-            LOGGER.log(Level.INFO, "Accepted connection {0}", server.getInetAddress().toString());
-
-            listenRunnable = new ListenRunnable("SERVER", new BufferedReader(new InputStreamReader(connectedSocket.getInputStream())));
-            sendRunnable = new SendRunnable("SERVER", new PrintWriter(connectedSocket.getOutputStream(), true));
-
-            listenRunnable.UpdateListeners(listeners);
-            sendRunnable.UpdateListeners(listeners);
-
-            Thread listenThread = new Thread(listenRunnable);
-            Thread sendThread = new Thread(sendRunnable);
-
-            listenThread.start();
-            sendThread.start();
-
         } catch (IOException ex) {
             listeners.stream().forEach((sl) -> {
-                sl.OnServerError();
+                sl.OnServerError(-1);
             });
-            StopConnection();
             LOGGER.log(Level.SEVERE, null, ex);
         }
     }
 
+    private ListenRunnable getListenRunnable(int port) {
+        for (int i = 0; i < listenRunnables.size(); i++) {
+            if (listenRunnables.get(i).getPort() == port) {
+                return listenRunnables.get(i);
+            }
+
+        }
+
+        return null;
+    }
+
     /**
-     * Shuts down the listeners and itself.
+     * Shuts down the listeners.
+     *
+     * @param portNr Port number
      */
-    public void StopConnection() {
-        LOGGER.log(Level.INFO, "Shutting down server.");
+    public void StopConnection(int portNr) {
+        LOGGER.log(Level.INFO, "Shutting server connection for port {0}", portNr);
 
-        try {
-            listenRunnable.stop();
-        } catch (Throwable e) {
-        }
-        try {
-            sendRunnable.stop();
-        } catch (Throwable e) {
-        }
-        try {
-            connectedSocket.close();
-        } catch (IOException e) {
-            LOGGER.log(Level.SEVERE, null, e);
-        }
+        ListenRunnable listR = getListenRunnable(portNr);
+        
+        if(listR != null)
+        {
+            listR.Stop();
 
-        isWaitingForConnection = false;
+            listenRunnables.remove(listR);
+        }
     }
 
     public void Stop() {
-        StopConnection();
+        //StopConnection();
         running = false;
     }
 
-    private boolean RunnablesHaveStopped() {
-        //Considered Stopped if we have a connected socket and we have got a non working runnable
-        return ((connectedSocket != null && connectedSocket.isConnected())
-                && (!listenRunnable.isRunning() || !sendRunnable.isRunning()));
-    }
+    public IMessage getMessage() {
 
-    public Message getMessage() {
-        return MessageParser.DecodeJSON(listenRunnable.getRawMessage());
-    }
+        for (int i = 0; i < listenRunnables.size(); i++) {
+            ListenRunnable listenR = listenRunnables.get(i);
+            if (listenR == null) {
+                continue;
+            }
 
-    /**
-     * Writes a message to the sender buffer.
-     *
-     * @param message XML message.
-     */
-    public void writeMessage(String message) {
+            if (!listenR.hasMessage()) {
+                continue;
+            }
 
-        Message helloMsg = new Message(Constants.MSG_QUIT);
-        helloMsg.setMsg(message);
+            return MessageParser.DecodeJSON(listenR.getRawMessage());
 
-        JSONObject jsonObj = new JSONObject(helloMsg);
+        }
 
-        sendRunnable.writeMessage(jsonObj.toString());
+        return new Message("NULL");
     }
 
     public boolean isRunning() {
         return running;
+    }
+
+    public String getAddress() {
+        return serverSocket.getInetAddress().getHostName();
     }
 
 }

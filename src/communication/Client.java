@@ -1,18 +1,14 @@
 package communication;
 
 import Util.Constants;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import Interfaces.ICommunicationListener;
-import Util.MessageParser;
-import communication.messages.Message;
+import Interfaces.IMessage;
 import org.json.JSONObject;
 
 /**
@@ -26,7 +22,6 @@ public class Client implements Runnable {
     private boolean hasConnection;
     private boolean running;
 
-    private ListenRunnable listenRunnable;
     private SendRunnable sendRunnable;
     private Socket connectedSocket;
 
@@ -41,11 +36,6 @@ public class Client implements Runnable {
 
         while (running) {
 
-            /*if(RunnablesHaveStopped())
-            {
-                LOGGER.log(Level.SEVERE, "ListenRunnable/SendRunnable stopped running! Shutting down connection...");
-                StopConnection();
-            }*/
             try {
                 Thread.sleep(Constants.CYCLEWAIT);
             } catch (InterruptedException ex) {
@@ -57,23 +47,31 @@ public class Client implements Runnable {
     public void AddListener(ICommunicationListener toAdd) {
         listeners.add(toAdd);
 
-        if (listenRunnable != null) {
-            listenRunnable.AddListener(toAdd);
-        }
-
         if (sendRunnable != null) {
             sendRunnable.AddListener(toAdd);
         }
     }
 
-    public void SetupConnection(String host, int port) {
+    public boolean HasConnection() {
+        return hasConnection;
+    }
+
+    public boolean SetupConnection(String host, int port) {
         if (hasConnection) {
-            return;
+            StopConnection();
         }
 
         try {
             connectedSocket = new Socket(host, port);
             hasConnection = connectedSocket.isConnected();
+
+            sendRunnable = new SendRunnable("CLIENT", connectedSocket);
+
+            sendRunnable.UpdateListeners(listeners);
+
+            Thread sendThread = new Thread(sendRunnable, "Client-SendRunnable");
+
+            sendThread.start();
 
             listeners.stream().forEach((sl) -> {
                 sl.OnClientConnectedToServer();
@@ -81,18 +79,7 @@ public class Client implements Runnable {
 
             LOGGER.log(Level.INFO, "Succesfully connected to {0}", connectedSocket.getInetAddress().toString());
 
-            listenRunnable = new ListenRunnable("CLIENT", new BufferedReader(new InputStreamReader(connectedSocket.getInputStream())));
-            sendRunnable = new SendRunnable("CLIENT", new PrintWriter(connectedSocket.getOutputStream(), true));
-
-            listenRunnable.UpdateListeners(listeners);
-            sendRunnable.UpdateListeners(listeners);
-
-            Thread listenThread = new Thread(listenRunnable);
-            Thread sendThread = new Thread(sendRunnable);
-
-            listenThread.start();
-            sendThread.start();
-
+            return true;
         } catch (IOException ex) {
 
             listeners.stream().forEach((sl) -> {
@@ -100,7 +87,9 @@ public class Client implements Runnable {
             });
 
             hasConnection = false;
-            LOGGER.log(Level.SEVERE, null, ex);
+            LOGGER.log(Level.SEVERE, "Client failed to connect to server!");
+
+            return false;
         }
 
     }
@@ -109,16 +98,10 @@ public class Client implements Runnable {
      * Shuts down the listeners and itself.
      */
     public void StopConnection() {
-        LOGGER.log(Level.INFO, "Shutting down server.");
+        LOGGER.log(Level.INFO, "Shutting down client.");
 
-        try {
-            listenRunnable.stop();
-        } catch (Throwable e) {
-        }
-        try {
-            sendRunnable.stop();
-        } catch (Throwable e) {
-        }
+        sendRunnable.Stop();
+
         try {
             connectedSocket.close();
         } catch (IOException e) {
@@ -131,9 +114,7 @@ public class Client implements Runnable {
     }
 
     private boolean RunnablesHaveStopped() {
-        //Considered Stopped if we have a connected socket and we have got a non working runnable
-        return ((connectedSocket != null && connectedSocket.isConnected())
-                && (!listenRunnable.isRunning() || !sendRunnable.isRunning()));
+        return sendRunnable == null || !sendRunnable.isRunning();
     }
 
     public void Stop() {
@@ -141,27 +122,15 @@ public class Client implements Runnable {
         running = false;
     }
 
-    public Message getMessage() {
-        return MessageParser.DecodeJSON(listenRunnable.getRawMessage());
+    public boolean isReady() {
+        return isRunning() && !RunnablesHaveStopped();
     }
 
-    /**
-     * Writes a message to the sender buffer.
-     *
-     * @param message XML message.
-     */
-    public void writeMessage(String message) {
+    public void writeMessage(IMessage message) {
 
-        Message helloMsg = new Message(Constants.MSG_MESSAGE);
-        helloMsg.setMsg(message);
+        JSONObject jsonObj = new JSONObject(message);
 
-        JSONObject jsonObj = new JSONObject(helloMsg);
-
-        sendRunnable.writeMessage(jsonObj.toString());
-
-        listeners.stream().forEach((sl) -> {
-            sl.OnClientSentMessage();
-        });
+        sendRunnable.writeMessage(jsonObj);
     }
 
     public boolean isRunning() {
