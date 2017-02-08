@@ -156,6 +156,11 @@ public class Server implements Runnable {
 
         return new Message("NULL");
     }
+    
+    public boolean isReady()
+    {
+        return serverSocket != null;
+    }
 
     public boolean isRunning() {
         return running;

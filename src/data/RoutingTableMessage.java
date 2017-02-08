@@ -14,16 +14,6 @@ public class RoutingTableMessage extends Message implements IMessage{
     private final List<PeerReference> routingTableCopy;
     private final int sourceId;
     
-    public RoutingTableMessage(int sourceId) {
-        
-        super(Constants.MSG_REQUEST_ROUTINGTABLE);
-        
-        this.msg = sourceId + " REQUESTING A COPY OF ROUTING TABLE FROM BOOT PEER";
-        
-        this.sourceId = sourceId;
-        this.routingTableCopy = null;
-    }
-    
     public RoutingTableMessage(List<PeerReference> routingTableCopy)
     {
         super(Constants.MSG_RESPONSE_ROUTINGTABLE);

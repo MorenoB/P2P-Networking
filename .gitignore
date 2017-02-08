@@ -9,7 +9,7 @@
 *.ear
 
 nbproject/private/
-build/
+/build/
 nbbuild/
 dist/
 nbdist/

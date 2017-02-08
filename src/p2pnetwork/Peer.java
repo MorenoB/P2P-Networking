@@ -2,6 +2,7 @@ package p2pnetwork;
 
 import Interfaces.ICommunicationListener;
 import Interfaces.IMessage;
+import Interfaces.IPeerListener;
 import Util.Constants;
 import Util.MessageParser;
 import communication.Server;
@@ -25,6 +26,7 @@ import org.json.JSONObject;
 public class Peer implements ICommunicationListener, Runnable {
 
     private static final Logger LOGGER = Logger.getLogger(Peer.class.getCanonicalName());
+    public final List<IPeerListener> peerListeners = new ArrayList<>();
 
     public boolean isRunning;
 
@@ -43,7 +45,6 @@ public class Peer implements ICommunicationListener, Runnable {
     private final List<PeerReference> peerReferences;
 
     private PeerReference lastPeerRequest;
-    private PeerReference peerReferenceCache;
 
     private final List<String> processedGuids;
 
@@ -52,8 +53,6 @@ public class Peer implements ICommunicationListener, Runnable {
     private final ConcurrentLinkedDeque<Message> clientMessageQueue;
 
     private Constants.PEER_STATUS peerStatus;
-
-    private final List<Message> messagePool;
 
     public Peer(byte peerID, int port) {
 
@@ -66,11 +65,9 @@ public class Peer implements ICommunicationListener, Runnable {
         this.port = port;
 
         this.peerReferences = new ArrayList<>();
-
         this.processedGuids = new ArrayList<>();
 
         this.peerStatus = Constants.PEER_STATUS.IDLE;
-        this.messagePool = new ArrayList<>();
     }
 
     public void Start() {
@@ -86,11 +83,7 @@ public class Peer implements ICommunicationListener, Runnable {
             AddBootPeer();
         }
 
-        int peerReferencesSize = bootPeer ? Constants.P2PSIZE : Constants.INITIAL_HASHMAP_SIZE;
-
-        for (int i = 0; i < peerReferencesSize; i++) {
-            peerReferences.add(null);
-        }
+        ResetPeerReferencesList();
 
         server = new Server(port);
 
@@ -107,6 +100,18 @@ public class Peer implements ICommunicationListener, Runnable {
 
         clientThread.start();
     }
+    
+    private void ResetPeerReferencesList()
+    {
+        int peerReferencesSize = isBootpeer() ? Constants.P2PSIZE : Constants.PEERREFERENCE_SIZE;
+
+        if(peerReferences.size() > 0)
+            peerReferences.clear();
+        
+        for (int i = 0; i < peerReferencesSize; i++) {
+            peerReferences.add(null);
+        }
+    }
 
     private void ConnectToAddress(String ipAddress, int port) {
         if (client.HasConnection()) {
@@ -122,7 +127,8 @@ public class Peer implements ICommunicationListener, Runnable {
         Message quitMesssage = MessageParser.CreateQuitMessage(connectedToOtherId, port);
 
         if (instant) {
-            client.writeMessage(quitMesssage);
+            //client.writeMessage(quitMesssage);
+            client.StopConnection();
             return;
         }
         if (clientMessageQueue.peek() == null) {
@@ -136,6 +142,9 @@ public class Peer implements ICommunicationListener, Runnable {
     }
 
     private void SetID(byte newId) {
+        if(getId() == newId)
+            return;
+        
         LOGGER.log(Level.INFO, "Peer " + peerID + " set peerId to {0}", newId);
         peerID = newId;
     }
@@ -188,9 +197,9 @@ public class Peer implements ICommunicationListener, Runnable {
         return ownRef;
     }
 
-    private void ConnectToPeerReference(PeerReference peerReference) {
-        peerReferenceCache = peerReference;
-        ConnectToId(peerReferenceCache.getId());
+    private void SendMessageToPeerReference(Message message, PeerReference peerReference) {
+        ConnectToAddress(peerReference.getAddress(), peerReference.getPortNumber());
+        client.writeMessage(message);
     }
 
     public void ConnectToId(int id) {
@@ -201,11 +210,6 @@ public class Peer implements ICommunicationListener, Runnable {
 
         if (tryingToConnectToOtherId == id) {
             //Already trying to connect to this id.
-            return;
-        }
-
-        if (peerReferenceCache != null && peerReferenceCache.getId() == id) {
-            ConnectToAddress(peerReferenceCache.getAddress(), peerReferenceCache.getPortNumber());
             return;
         }
 
@@ -230,7 +234,7 @@ public class Peer implements ICommunicationListener, Runnable {
         if (tryingToConnectToOtherId == nextPR.getId()) {
             return;
         }
-
+        
         FindClosestMessage searchRequestMsg = MessageParser.CreateSearchPeerMessage(nextPR.getId(), sourcePeerRef, id);
 
         LOGGER.log(Level.INFO, "Peer {0} will connect to {1} to search for target id {2}", new Object[]{peerID, nextPR.getId(), id});
@@ -345,7 +349,7 @@ public class Peer implements ICommunicationListener, Runnable {
 
     private int CalculateDistance(int srcID, int destID) {
 
-        int result = srcID ^ destID;
+        int result = (destID - srcID + (int) Math.pow(2, Constants.P2PSIZE)) % (int) Math.pow(2, Constants.P2PSIZE);
 
         return result;
     }
@@ -376,7 +380,7 @@ public class Peer implements ICommunicationListener, Runnable {
                 return;
             }
 
-            if (peerStatus == Constants.PEER_STATUS.FINDINGCLOSEST) {
+            if (peerStatus == Constants.PEER_STATUS.WAITINGFORCLOSESTRESPONSE) {
                 return;
             }
 
@@ -384,7 +388,12 @@ public class Peer implements ICommunicationListener, Runnable {
                 LOGGER.log(Level.INFO, "Peer {0} is connected to {1} while trying to connect to {2}", new Object[]{peerID, connectedToOtherId, msgToSend.getTargetId()});
                 ConnectToId(msgToSend.getTargetId());
             } else {
+                
                 client.writeMessage(clientMessageQueue.poll());
+                
+                if(msgToSend.getMessageType() == Constants.MSG_REQUEST_SEARCH_PEERREF)
+                    peerStatus = Constants.PEER_STATUS.WAITINGFORCLOSESTRESPONSE;
+                
             }
         }
 
@@ -420,23 +429,21 @@ public class Peer implements ICommunicationListener, Runnable {
         LOGGER.log(Level.INFO, "Peer is disconnected! Peer id set to {0}", Constants.DISCONNECTED_PEERID);
     }
 
-    private void RequestRoutingTable() {
-
-        peerStatus = Constants.PEER_STATUS.COPYINGROUTETABLE;
-
-        int idToFind = -1;
-        PeerReference ownRef = new PeerReference(peerID, getAddress(), getPort());
-
-        RoutingTableMessage routingTableRequest = MessageParser.CreateRoutingTableRequest(peerID);
-
-        clientMessageQueue.add(routingTableRequest);
-    }
-
     private void FillRoutingTable(List<PeerReference> routingTableCopy) {
         List<Integer> idsToFind = new ArrayList();
+        
+        ResetPeerReferencesList();
+        
         for (int i = 0; i < peerReferences.size(); i++) {
-
-            int idToFind = Math.floorMod((int) (peerID + Math.pow(2, i)), Constants.P2PSIZE);
+            
+            int idToFind = (int) (peerID + Math.pow(2, i));
+                        
+            if(idToFind >= Constants.P2PSIZE)
+                idToFind = Math.floorMod(idToFind, Constants.P2PSIZE);
+            
+            //Make sure the top p2psize peer id is not being chosen because this is the boot peer id!
+            if(idToFind == Constants.BOOTPEER_ID)
+                idToFind = 0;
 
             if (HasPeerReferenceId(idToFind)) {
                 continue;
@@ -449,10 +456,13 @@ public class Peer implements ICommunicationListener, Runnable {
         for (int i = 0; i < idsToFind.size(); i++) {
             for (int j = 0; j < routingTableCopy.size(); j++) {
                 PeerReference peerRef = routingTableCopy.get(j);
+                
+                int idToFind = idsToFind.get(i);
 
-                if (peerRef.getId() == idsToFind.get(i)) {
+                if (peerRef.getId() == idToFind) {
                     AddPeerReference(peerRef);
-                    idsToFind.remove(j);
+                    idsToFind.remove(i);
+                    break;
                 }
             }
         }
@@ -461,74 +471,98 @@ public class Peer implements ICommunicationListener, Runnable {
             return;
         }
 
-        FillRoutingTableWithNearestIds(idsToFind, routingTableCopy);
+        FillEmptyRoutingTableSpotsWithNearestIds(idsToFind, routingTableCopy);
+    }
+    
+    private boolean RoutingTableContainsId(List<PeerReference> routingTable, int id)
+    {
+        for (int i = 0; i < routingTable.size(); i++) {
+            PeerReference peerRef = routingTable.get(i);
+            if(peerRef == null) continue;
+            
+            if(peerRef.getId() == id)
+                return true;
+        }
+        return false;
     }
 
     public String GetPeerStatus() {
         return peerStatus.toString();
     }
 
-    private void FillRoutingTableWithNearestIds(List<Integer> idsToFind, List<PeerReference> routingTableCopy) {
+    private void FillEmptyRoutingTableSpotsWithNearestIds(List<Integer> idsToFind, List<PeerReference> routingTableCopy) {
         for (int i = 0; i < idsToFind.size(); i++) {
             int idToFind = idsToFind.get(i);
 
-            PeerReference peerRef = FindShortestDistanceFromIdRecursive(idToFind, 0, 0, routingTableCopy);
+            PeerReference peerRef = FindNextAvailablePeerReferenceRecursive(routingTableCopy, idToFind, 0);
 
             if (peerRef != null) {
                 AddPeerReference(peerRef);
             }
         }
     }
-
-    private PeerReference FindShortestDistanceFromIdRecursive(int originalIdToFind, int curDistancePositive, int curDistanceNegative, List<PeerReference> routingTable) {
-        int positiveId = originalIdToFind + curDistancePositive;
-        int negativeId = originalIdToFind - curDistanceNegative;
-
-        //LOGGER.log(Level.INFO, "Trying to search for positive id value {0} and negative id value {1}", new Object[]{positiveId, negativeId});
+    
+    private PeerReference FindNextAvailablePeerReferenceRecursive(List<PeerReference> routingTable, int id, int distance)
+    {
+        int idToFind = id + distance;
+        boolean alreadyHasPeerReference = false;
+        
+        if(idToFind >= Constants.P2PSIZE)
+            idToFind = Math.floorMod(idToFind, Constants.P2PSIZE);
+        
+        
+        if(!RoutingTableContainsId(routingTable, idToFind))
+        {
+            return FindNextAvailablePeerReferenceRecursive(routingTable, id, distance + 1);
+        }
+        
         for (int i = 0; i < routingTable.size(); i++) {
-            PeerReference foundPeerRef = null;
-
-            if (routingTable.get(i).getId() == positiveId) {
-                foundPeerRef = routingTable.get(i);
-            }
-
-            if (foundPeerRef == null && routingTable.get(i).getId() == negativeId) {
-                foundPeerRef = routingTable.get(i);
-            }
-
-            if (foundPeerRef == null || HasPeerReferenceId(foundPeerRef.getId())) {
+            PeerReference peerRef = routingTable.get(i);
+            if(peerRef == null) continue;
+            
+            if(peerRef.getId() == getId())
+                continue;
+            
+            if(HasPeerReferenceId(peerRef.getId()))
+            {
+                alreadyHasPeerReference = true;
                 continue;
             }
-
-            return foundPeerRef;
+            
+            if(peerRef.getId() == idToFind)
+                return peerRef;
         }
-
-        int newCurDistancePostive = curDistancePositive + 1;
-        int newCurDistanceNegative = curDistanceNegative + 1;
-
-        if (originalIdToFind + newCurDistancePostive == peerID) {
-            newCurDistancePostive++;
-        }
-
-        if (originalIdToFind - newCurDistanceNegative == peerID) {
-            newCurDistanceNegative++;
-        }
-
-        if (curDistancePositive <= curDistanceNegative && curDistancePositive < Constants.P2PSIZE - 1) {
-
-            /*if(newCurDistancePostive > Constants.P2PSIZE - 1)
-                return null;*/
-            return FindShortestDistanceFromIdRecursive(originalIdToFind, newCurDistancePostive, curDistanceNegative, routingTable);
-        } else if (curDistanceNegative < peerID) {
-
-            /*if(newCurDistanceNegative > peerID)
-                return null;*/
-            return FindShortestDistanceFromIdRecursive(originalIdToFind, curDistancePositive, newCurDistanceNegative, routingTable);
-        }
-
+        
+        if(alreadyHasPeerReference && routingTable.size() > Constants.PEERREFERENCE_SIZE)
+            return FindNextAvailablePeerReferenceRecursive(routingTable, id, distance + 1);
+        
         return null;
-
     }
+
+    private void SendCopyOfRoutingTableToAllReferences()
+    {
+        for (int i = 0; i < peerReferences.size(); i++) {
+            
+            if(peerReferences.get(i) == null) continue;
+            
+            int targetPeerId = peerReferences.get(i).getId();
+
+            List<PeerReference> routingTableCopy = new ArrayList<>();
+            for (int j = 0; j < peerReferences.size(); j++) {
+                PeerReference peerRef = peerReferences.get(j);
+
+                if (peerRef == null) {
+                    continue;
+                }
+
+                routingTableCopy.add(peerRef);
+            }
+
+            RoutingTableMessage routingTableResponse = MessageParser.CreateRoutingTableResponse(targetPeerId, routingTableCopy);
+
+            clientMessageQueue.add(routingTableResponse);
+        }
+}
 
     private void RequestPeerId(int connectionId) {
         peerStatus = Constants.PEER_STATUS.JOINING;
@@ -644,6 +678,9 @@ public class Peer implements ICommunicationListener, Runnable {
     @Override
     public void OnClientSentMessage(JSONObject jsonObj) {
         LOGGER.log(Level.INFO, "Client " + peerID + " has sent {0}", jsonObj);
+        peerListeners.stream().forEach((sl) -> {
+            sl.OnMessageSent();
+        });
     }
 
     @Override
@@ -692,11 +729,6 @@ public class Peer implements ICommunicationListener, Runnable {
                 Byte recievedId = Byte.parseByte(recievedString);
                 SetID(recievedId);
 
-                if (!isDisconnectedFromNetwork()) {
-                    RequestRoutingTable();
-
-                }
-
                 break;
             case Constants.MSG_QUIT:
                 LOGGER.log(Level.SEVERE, "Server {0} recieved quit command!", peerID);
@@ -723,6 +755,9 @@ public class Peer implements ICommunicationListener, Runnable {
                 }
                 
                 clientMessageQueue.add(MessageParser.CreatePeerIDMessage(newId));
+                
+                //We have noticed an update in peer references
+                SendCopyOfRoutingTableToAllReferences();
 
                 break;
 
@@ -783,13 +818,27 @@ public class Peer implements ICommunicationListener, Runnable {
                 //If we have the target peer ref, connect to it
                 if (searchResponse.getHasTargetReference()) {
 
-                    ConnectToPeerReference(newlyAcuiredPeerRef);
+                    Message debugMsg = new Message("NOT IMPLEMENTED");
+                    
+                    if(clientMessageQueue.peek().getMessageType() == Constants.MSG_MESSAGE)
+                    {
+                        debugMsg = clientMessageQueue.poll();
+                    }
+                    else if(clientMessageQueue.peek().getMessageType() == Constants.MSG_REQUEST_SEARCH_PEERREF)
+                    {
+                        clientMessageQueue.poll();
+                        debugMsg = clientMessageQueue.poll();
+                    }
+                    
+                    SendMessageToPeerReference(debugMsg ,newlyAcuiredPeerRef);
 
                     peerStatus = Constants.PEER_STATUS.SENDINGMSG;
+                    
+                    
                     break;
                 }
-
-                peerStatus = Constants.PEER_STATUS.FINDINGCLOSEST;
+                
+                LOGGER.log(Level.INFO, "Peer {0} does not have received the target peer ref, will connect to {1} instead." , new Object[]{ getId(), newlyAcuiredPeerRef.getId() });
 
                 PeerReference myPeerRef = new PeerReference(peerID, getAddress(), getPort());
 
@@ -797,41 +846,16 @@ public class Peer implements ICommunicationListener, Runnable {
                 FindClosestMessage searchRequestMsg = MessageParser.CreateSearchPeerMessage(newlyAcuiredPeerRef.getId(), myPeerRef, originalSearchId);
 
                 lastPeerRequest = newlyAcuiredPeerRef;
+ 
+                SendMessageToPeerReference(searchRequestMsg, newlyAcuiredPeerRef);
 
-                clientMessageQueue.add(searchRequestMsg);
-
-                break;
-
-            case Constants.MSG_REQUEST_ROUTINGTABLE:
-
-                //Only supported on bootpeer
-                if (!bootPeer) {
-                    break;
-                }
-
-                RoutingTableMessage routingTableRequest = (RoutingTableMessage) recievedMsg;
-
-                int targetPeerId = routingTableRequest.getSourceId();
-
-                List<PeerReference> routingTableCopy = new ArrayList<>();
-                for (int i = 0; i < peerReferences.size(); i++) {
-                    PeerReference peerRef = peerReferences.get(i);
-
-                    if (peerRef == null) {
-                        continue;
-                    }
-
-                    routingTableCopy.add(peerRef);
-                }
-
-                RoutingTableMessage routingTableResponse = MessageParser.CreateRoutingTableResponse(targetPeerId, routingTableCopy);
-
-                clientMessageQueue.add(routingTableResponse);
                 break;
 
             case Constants.MSG_RESPONSE_ROUTINGTABLE:
 
                 RoutingTableMessage incomingRoutingTableResponse = (RoutingTableMessage) recievedMsg;
+                
+                SetID((byte)incomingRoutingTableResponse.getTargetId());
 
                 FillRoutingTable(incomingRoutingTableResponse.getRoutingTableCopy());
                 peerStatus = Constants.PEER_STATUS.IDLE;
@@ -843,12 +867,16 @@ public class Peer implements ICommunicationListener, Runnable {
         LOGGER.log(Level.INFO, "Peer {0} recieved {1}", new Object[]{peerID, recievedMsg.getMsg()});
         lastRecievedMessage = (Message) recievedMsg;
         processedGuids.add(recievedMsg.getGuid());
+        
+        peerListeners.stream().forEach((sl) -> {
+            sl.OnMessageReceived();
+        });
     }
 
     @Override
     public void run() {
 
-        while (!server.isRunning()) {
+        while (!server.isRunning() || !server.isReady()) {
             try {
                 Thread.sleep(Constants.CYCLEWAIT);
             } catch (InterruptedException ex) {
