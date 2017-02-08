@@ -103,7 +103,7 @@ public class Peer implements ICommunicationListener, Runnable {
     
     private void ResetPeerReferencesList()
     {
-        int peerReferencesSize = isBootpeer() ? Constants.P2PSIZE : Constants.INITIAL_HASHMAP_SIZE;
+        int peerReferencesSize = isBootpeer() ? Constants.P2PSIZE : Constants.PEERREFERENCE_SIZE;
 
         if(peerReferences.size() > 0)
             peerReferences.clear();
@@ -142,6 +142,9 @@ public class Peer implements ICommunicationListener, Runnable {
     }
 
     private void SetID(byte newId) {
+        if(getId() == newId)
+            return;
+        
         LOGGER.log(Level.INFO, "Peer " + peerID + " set peerId to {0}", newId);
         peerID = newId;
     }
@@ -346,7 +349,7 @@ public class Peer implements ICommunicationListener, Runnable {
 
     private int CalculateDistance(int srcID, int destID) {
 
-        int result = srcID ^ destID;
+        int result = (destID - srcID + (int) Math.pow(2, Constants.P2PSIZE)) % (int) Math.pow(2, Constants.P2PSIZE);
 
         return result;
     }
@@ -434,9 +437,13 @@ public class Peer implements ICommunicationListener, Runnable {
         for (int i = 0; i < peerReferences.size(); i++) {
             
             int idToFind = (int) (peerID + Math.pow(2, i));
-            
-            if(idToFind > Constants.P2PSIZE)
+                        
+            if(idToFind >= Constants.P2PSIZE)
                 idToFind = Math.floorMod(idToFind, Constants.P2PSIZE);
+            
+            //Make sure the top p2psize peer id is not being chosen because this is the boot peer id!
+            if(idToFind == Constants.BOOTPEER_ID)
+                idToFind = 0;
 
             if (HasPeerReferenceId(idToFind)) {
                 continue;
@@ -449,9 +456,10 @@ public class Peer implements ICommunicationListener, Runnable {
         for (int i = 0; i < idsToFind.size(); i++) {
             for (int j = 0; j < routingTableCopy.size(); j++) {
                 PeerReference peerRef = routingTableCopy.get(j);
+                
+                int idToFind = idsToFind.get(i);
 
-                if (peerRef.getId() == idsToFind.get(i)) {
-                    LOGGER.log(Level.INFO, "Peer {0} will add peer {1}", new Object[]{getId(),idsToFind.get(i)  });
+                if (peerRef.getId() == idToFind) {
                     AddPeerReference(peerRef);
                     idsToFind.remove(i);
                     break;
@@ -465,6 +473,18 @@ public class Peer implements ICommunicationListener, Runnable {
 
         FillEmptyRoutingTableSpotsWithNearestIds(idsToFind, routingTableCopy);
     }
+    
+    private boolean RoutingTableContainsId(List<PeerReference> routingTable, int id)
+    {
+        for (int i = 0; i < routingTable.size(); i++) {
+            PeerReference peerRef = routingTable.get(i);
+            if(peerRef == null) continue;
+            
+            if(peerRef.getId() == id)
+                return true;
+        }
+        return false;
+    }
 
     public String GetPeerStatus() {
         return peerStatus.toString();
@@ -474,64 +494,51 @@ public class Peer implements ICommunicationListener, Runnable {
         for (int i = 0; i < idsToFind.size(); i++) {
             int idToFind = idsToFind.get(i);
 
-            PeerReference peerRef = FindShortestDistanceFromIdRecursive(idToFind, 0, 0, routingTableCopy);
+            PeerReference peerRef = FindNextAvailablePeerReferenceRecursive(routingTableCopy, idToFind, 0);
 
             if (peerRef != null) {
                 AddPeerReference(peerRef);
             }
         }
     }
-
-    private PeerReference FindShortestDistanceFromIdRecursive(int originalIdToFind, int curDistancePositive, int curDistanceNegative, List<PeerReference> routingTable) {
-        int positiveId = originalIdToFind + curDistancePositive;
-        int negativeId = originalIdToFind - curDistanceNegative;
-
-        //LOGGER.log(Level.INFO, "Trying to search for positive id value {0} and negative id value {1}", new Object[]{positiveId, negativeId});
+    
+    private PeerReference FindNextAvailablePeerReferenceRecursive(List<PeerReference> routingTable, int id, int distance)
+    {
+        int idToFind = id + distance;
+        boolean alreadyHasPeerReference = false;
+        
+        if(idToFind >= Constants.P2PSIZE)
+            idToFind = Math.floorMod(idToFind, Constants.P2PSIZE);
+        
+        
+        if(!RoutingTableContainsId(routingTable, idToFind))
+        {
+            return FindNextAvailablePeerReferenceRecursive(routingTable, id, distance + 1);
+        }
+        
         for (int i = 0; i < routingTable.size(); i++) {
-            PeerReference foundPeerRef = null;
-
-            if (routingTable.get(i).getId() == positiveId) {
-                foundPeerRef = routingTable.get(i);
-            }
-
-            if (foundPeerRef == null && routingTable.get(i).getId() == negativeId) {
-                foundPeerRef = routingTable.get(i);
-            }
-
-            if (foundPeerRef == null || HasPeerReferenceId(foundPeerRef.getId())) {
+            PeerReference peerRef = routingTable.get(i);
+            if(peerRef == null) continue;
+            
+            if(peerRef.getId() == getId())
+                continue;
+            
+            if(HasPeerReferenceId(peerRef.getId()))
+            {
+                alreadyHasPeerReference = true;
                 continue;
             }
-
-            return foundPeerRef;
+            
+            if(peerRef.getId() == idToFind)
+                return peerRef;
         }
-
-        int newCurDistancePostive = curDistancePositive + 1;
-        int newCurDistanceNegative = curDistanceNegative + 1;
-
-        if (originalIdToFind + newCurDistancePostive == peerID) {
-            newCurDistancePostive++;
-        }
-
-        if (originalIdToFind - newCurDistanceNegative == peerID) {
-            newCurDistanceNegative++;
-        }
-
-        if (curDistancePositive <= curDistanceNegative && curDistancePositive < Constants.P2PSIZE - 1) {
-
-            /*if(newCurDistancePostive > Constants.P2PSIZE - 1)
-                return null;*/
-            return FindShortestDistanceFromIdRecursive(originalIdToFind, newCurDistancePostive, curDistanceNegative, routingTable);
-        } else if (curDistanceNegative < peerID) {
-
-            /*if(newCurDistanceNegative > peerID)
-                return null;*/
-            return FindShortestDistanceFromIdRecursive(originalIdToFind, curDistancePositive, newCurDistanceNegative, routingTable);
-        }
-
+        
+        if(alreadyHasPeerReference && routingTable.size() > Constants.PEERREFERENCE_SIZE)
+            return FindNextAvailablePeerReferenceRecursive(routingTable, id, distance + 1);
+        
         return null;
-
     }
-    
+
     private void SendCopyOfRoutingTableToAllReferences()
     {
         for (int i = 0; i < peerReferences.size(); i++) {
@@ -615,7 +622,6 @@ public class Peer implements ICommunicationListener, Runnable {
     }
 
     private int getNextAvailableId() {
-        System.out.println(availablePeerIds.size());
         for (int i = 0; i < availablePeerIds.size(); i++) {
             int assignedId = availablePeerIds.get(i);
             availablePeerIds.remove(i);
@@ -870,7 +876,7 @@ public class Peer implements ICommunicationListener, Runnable {
     @Override
     public void run() {
 
-        while (!server.isRunning()) {
+        while (!server.isRunning() || !server.isReady()) {
             try {
                 Thread.sleep(Constants.CYCLEWAIT);
             } catch (InterruptedException ex) {

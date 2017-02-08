@@ -6,18 +6,18 @@ package Util;
  */
 public final class Constants {
     
-    public static final int CYCLEWAIT = 100;
+    public static final int CYCLEWAIT = 200;
     
     public static final int SERVERPORT = 1200;
     
     public static final byte DISCONNECTED_PEERID = -1;
     
     public static final int P2PSIZE = 8;
-    public static final byte INITIAL_HASHMAP_SIZE = 2;
+    public static final byte PEERREFERENCE_SIZE = 2;
     
     public static final int MAX_CONNECTION_RETRIES = 4;
     
-    public static final int BOOTPEER_ID = P2PSIZE + 1;
+    public static final int BOOTPEER_ID = P2PSIZE;
     
     
     //Message types
