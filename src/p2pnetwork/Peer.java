@@ -829,14 +829,17 @@ public class Peer implements ICommunicationListener, Runnable {
 
                     Message debugMsg = new Message("NOT IMPLEMENTED");
                     
-                    if(clientMessageQueue.peek().getMessageType() == Constants.MSG_MESSAGE)
+                    if(clientMessageQueue.peek() != null)
                     {
-                        debugMsg = clientMessageQueue.poll();
-                    }
-                    else if(clientMessageQueue.peek().getMessageType() == Constants.MSG_REQUEST_SEARCH_PEERREF)
-                    {
-                        clientMessageQueue.poll();
-                        debugMsg = clientMessageQueue.poll();
+                        if(clientMessageQueue.peek().getMessageType() == Constants.MSG_MESSAGE)
+                        {
+                            debugMsg = clientMessageQueue.poll();
+                        }
+                        else if(clientMessageQueue.peek().getMessageType() == Constants.MSG_REQUEST_SEARCH_PEERREF)
+                        {
+                            clientMessageQueue.poll();
+                            debugMsg = clientMessageQueue.poll();
+                        }
                     }
                     
                     SendMessageToPeerReference(debugMsg ,newlyAcuiredPeerRef);
