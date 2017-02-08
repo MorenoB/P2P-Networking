@@ -5,8 +5,10 @@
  */
 package p2pnetwork;
 
+import Interfaces.IMessage;
 import Interfaces.IPeerListener;
 import Util.Constants;
+import data.InfoMessage;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.DefaultListModel;
@@ -68,7 +70,7 @@ public class Application extends javax.swing.JFrame implements IPeerListener{
 
         UpdatePeerListData();
         
-        visualizer.Init(messageQueueModel,lable_LastRecievedMessage);
+        visualizer.Init(lable_LastRecievedMessage);
     }
 
     private void UpdatePeerListData() {
@@ -219,10 +221,10 @@ public class Application extends javax.swing.JFrame implements IPeerListener{
                         .addComponent(label_address, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(label_Address_Value, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                    .addComponent(jScrollPane2)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(lable_LastRecievedMessage, javax.swing.GroupLayout.PREFERRED_SIZE, 258, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 6, Short.MAX_VALUE)))
+                        .addGap(0, 6, Short.MAX_VALUE))
+                    .addComponent(jScrollPane2))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -230,7 +232,7 @@ public class Application extends javax.swing.JFrame implements IPeerListener{
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 258, Short.MAX_VALUE)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 257, Short.MAX_VALUE)
                     .addComponent(jScrollPane2))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -380,8 +382,23 @@ public class Application extends javax.swing.JFrame implements IPeerListener{
     // End of variables declaration//GEN-END:variables
 
     @Override
-    public void OnMessageReceived() {
+    public void OnMessageReceived(IMessage message) {
         UpdatePeerListData();
+        
+        if(message.getMessageType() == Constants.MSG_MESSAGE)
+            AddMessageToMessageList(message);
+
+    }
+    
+    private void AddMessageToMessageList(IMessage message)
+    {
+        if(messageQueueModel == null) return;
+        
+        InfoMessage infoMsg = (InfoMessage) message;
+        
+        String StringToShow = String.format("<Peer %1$d> @Peer %2$d : %3$s", infoMsg.getSourceId(), infoMsg.getTargetId(), infoMsg.getMsg());
+        messageQueueModel.addElement(StringToShow);
+        
     }
 
     @Override

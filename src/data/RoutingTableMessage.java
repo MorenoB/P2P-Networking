@@ -9,7 +9,7 @@ import java.util.List;
  * Used for the bootpeer as well to respond with a copy of its routing table.
  * @author Moreno
  */
-public class RoutingTableMessage extends Message implements IMessage{
+public class RoutingTableMessage extends MessageObject implements IMessage{
     
     private final List<PeerReference> routingTableCopy;
     private final int sourceId;
