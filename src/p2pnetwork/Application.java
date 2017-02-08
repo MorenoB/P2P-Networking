@@ -5,8 +5,10 @@
  */
 package p2pnetwork;
 
+import Interfaces.IMessage;
 import Interfaces.IPeerListener;
 import Util.Constants;
+import data.InfoMessage;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.DefaultListModel;
@@ -68,7 +70,7 @@ public class Application extends javax.swing.JFrame implements IPeerListener{
 
         UpdatePeerListData();
         
-        visualizer.Init(messageQueueModel,lable_LastRecievedMessage);
+        visualizer.Init(lable_LastRecievedMessage);
     }
 
     private void UpdatePeerListData() {
@@ -111,6 +113,10 @@ public class Application extends javax.swing.JFrame implements IPeerListener{
         jScrollPane2 = new javax.swing.JScrollPane();
         list_MessageQueue = new javax.swing.JList<>();
         lable_LastRecievedMessage = new javax.swing.JLabel();
+        jScrollPane3 = new javax.swing.JScrollPane();
+        textpane_messageField = new javax.swing.JTextPane();
+        label_message_txt = new javax.swing.JLabel();
+        label_message_peerId = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -138,22 +144,24 @@ public class Application extends javax.swing.JFrame implements IPeerListener{
         label_Port.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         label_Port.setText("Port");
 
+        label_Address_Value.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         label_Address_Value.setText(" ");
 
+        label_ID_value.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         label_ID_value.setText(" ");
 
-        button_Refresh.setText("Refresh List");
+        button_Refresh.setText("Refresh Peer List");
         button_Refresh.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 button_RefreshActionPerformed(evt);
             }
         });
 
-        label_id.setText("Peer ID");
+        label_id.setText("Peer ID:");
 
-        label_address.setText("Address");
+        label_address.setText("Address:");
 
-        button_JoinPeerId.setText("Join Peer ID");
+        button_JoinPeerId.setText("Send Message");
         button_JoinPeerId.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 button_JoinPeerIdActionPerformed(evt);
@@ -169,7 +177,14 @@ public class Application extends javax.swing.JFrame implements IPeerListener{
         });
         jScrollPane2.setViewportView(list_MessageQueue);
 
-        lable_LastRecievedMessage.setText("LastRecievedMessage");
+        lable_LastRecievedMessage.setText("LastRecievedMessage:");
+
+        textpane_messageField.setText("TEST MESSAGE");
+        jScrollPane3.setViewportView(textpane_messageField);
+
+        label_message_txt.setText("Message:");
+
+        label_message_peerId.setText("Peer ID");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -177,31 +192,39 @@ public class Application extends javax.swing.JFrame implements IPeerListener{
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(jScrollPane1)
-                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                        .addComponent(button_JoinPeerId)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(textfield_PeerId))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(buton_AddPeer, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(label_Port, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(field_Port))
+                        .addComponent(textfield_PeerId)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(button_Refresh, javax.swing.GroupLayout.DEFAULT_SIZE, 193, Short.MAX_VALUE)))
+                        .addComponent(button_JoinPeerId))
+                    .addComponent(jScrollPane3, javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                    .addComponent(label_Port, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(field_Port, javax.swing.GroupLayout.DEFAULT_SIZE, 85, Short.MAX_VALUE))
+                                .addGap(16, 16, 16)
+                                .addComponent(buton_AddPeer))
+                            .addComponent(button_Refresh, javax.swing.GroupLayout.PREFERRED_SIZE, 451, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(0, 157, Short.MAX_VALUE))
+                    .addComponent(label_message_txt)
+                    .addComponent(label_message_peerId))
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(label_id, javax.swing.GroupLayout.PREFERRED_SIZE, 57, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(label_address, javax.swing.GroupLayout.PREFERRED_SIZE, 73, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(84, 84, 84)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(label_ID_value, javax.swing.GroupLayout.DEFAULT_SIZE, 253, Short.MAX_VALUE)
-                            .addComponent(label_Address_Value, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
-                    .addComponent(lable_LastRecievedMessage, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jScrollPane2, javax.swing.GroupLayout.Alignment.TRAILING))
+                        .addComponent(label_id, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(label_ID_value, javax.swing.GroupLayout.PREFERRED_SIZE, 107, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addComponent(label_address, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(label_Address_Value, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(lable_LastRecievedMessage, javax.swing.GroupLayout.PREFERRED_SIZE, 258, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 6, Short.MAX_VALUE))
+                    .addComponent(jScrollPane2))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -209,32 +232,40 @@ public class Application extends javax.swing.JFrame implements IPeerListener{
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 30, Short.MAX_VALUE)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 257, Short.MAX_VALUE)
+                    .addComponent(jScrollPane2))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(buton_AddPeer)
-                            .addComponent(button_Refresh)
-                            .addComponent(lable_LastRecievedMessage))
-                        .addGap(1, 1, 1)
-                        .addComponent(label_Port)
-                        .addGap(3, 3, 3)
-                        .addComponent(field_Port, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(button_JoinPeerId)
-                            .addComponent(textfield_PeerId, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                    .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(label_address)
                             .addComponent(label_Address_Value, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGap(18, 18, 18)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(label_id)
-                            .addComponent(label_ID_value))))
-                .addGap(51, 51, 51))
+                            .addComponent(label_ID_value))
+                        .addGap(18, 18, 18)
+                        .addComponent(lable_LastRecievedMessage)
+                        .addGap(9, 9, 9))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addComponent(button_Refresh)
+                        .addGap(1, 1, 1)
+                        .addComponent(label_Port)
+                        .addGap(2, 2, 2)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(field_Port, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(buton_AddPeer))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(label_message_txt)
+                        .addGap(1, 1, 1)))
+                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(label_message_peerId)
+                .addGap(2, 2, 2)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(button_JoinPeerId)
+                    .addComponent(textfield_PeerId, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap())
         );
 
         pack();
@@ -290,7 +321,7 @@ public class Application extends javax.swing.JFrame implements IPeerListener{
     }//GEN-LAST:event_button_RefreshActionPerformed
 
     private void button_JoinPeerIdActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_button_JoinPeerIdActionPerformed
-        selectedPeer.SendMessage(Integer.parseInt(textfield_PeerId.getText()), "TEST MESSAGE!");
+        selectedPeer.SendMessage(Integer.parseInt(textfield_PeerId.getText()), textpane_messageField.getText());
     }//GEN-LAST:event_button_JoinPeerIdActionPerformed
 
     /**
@@ -335,20 +366,39 @@ public class Application extends javax.swing.JFrame implements IPeerListener{
     private javax.swing.JTextField field_Port;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JLabel label_Address_Value;
     private javax.swing.JLabel label_ID_value;
     private javax.swing.JLabel label_Port;
     private javax.swing.JLabel label_address;
     private javax.swing.JLabel label_id;
+    private javax.swing.JLabel label_message_peerId;
+    private javax.swing.JLabel label_message_txt;
     private javax.swing.JLabel lable_LastRecievedMessage;
     private javax.swing.JList<String> list_MessageQueue;
     private javax.swing.JList<String> list_peerList;
     private javax.swing.JTextField textfield_PeerId;
+    private javax.swing.JTextPane textpane_messageField;
     // End of variables declaration//GEN-END:variables
 
     @Override
-    public void OnMessageReceived() {
+    public void OnMessageReceived(IMessage message) {
         UpdatePeerListData();
+        
+        if(message.getMessageType() == Constants.MSG_MESSAGE)
+            AddMessageToMessageList(message);
+
+    }
+    
+    private void AddMessageToMessageList(IMessage message)
+    {
+        if(messageQueueModel == null) return;
+        
+        InfoMessage infoMsg = (InfoMessage) message;
+        
+        String StringToShow = String.format("<Peer %1$d> @Peer %2$d : %3$s", infoMsg.getSourceId(), infoMsg.getTargetId(), infoMsg.getMsg());
+        messageQueueModel.addElement(StringToShow);
+        
     }
 
     @Override

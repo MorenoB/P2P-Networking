@@ -2,10 +2,11 @@ package Util;
 
 import Interfaces.IMessage;
 import data.JoinMessage;
-import data.Message;
+import data.MessageObject;
 import data.PeerReference;
 import data.RoutingTableMessage;
 import data.FindClosestMessage;
+import data.InfoMessage;
 import java.util.ArrayList;
 import java.util.List;
 import org.json.JSONArray;
@@ -94,11 +95,19 @@ public final class MessageParser {
                 RoutingTableMessage routingTableResponse = CreateRoutingTableResponse(targetId, routingTableCopyResponse);
                 
                 return routingTableResponse;
+            case Constants.MSG_MESSAGE:
+                int sourceId = jsonObj.getInt("sourceId");
+                
+                InfoMessage infoMsg = new InfoMessage(msg);
+                infoMsg.setSourceId(sourceId);
+                infoMsg.setTargetId(targetId);
+                return infoMsg;
+                
             default:
-                Message message = new Message(messageType);
-                message.setMsg(msg);
+                MessageObject message = new MessageObject(messageType);
                 message.setTargetId(targetId);
                 message.setGuid(messageGuid);
+                message.setMsg(msg);
 
                 return message;
         }
@@ -113,8 +122,8 @@ public final class MessageParser {
         return peerRef;
     }
 
-    public static Message CreatePeerIDMessage(int peerId) {
-        Message message = new Message(Constants.MSG_PEERID_RESPONSE);
+    public static MessageObject CreatePeerIDMessage(int peerId) {
+        MessageObject message = new MessageObject(Constants.MSG_PEERID_RESPONSE);
 
         message.setMsg(Integer.toString(peerId));
         message.setTargetId(peerId);
@@ -122,8 +131,8 @@ public final class MessageParser {
         return message;
     }
 
-    public static Message CreateQuitMessage(int targetConnectionId, int port) {
-        Message message = new Message(Constants.MSG_QUIT);
+    public static MessageObject CreateQuitMessage(int targetConnectionId, int port) {
+        MessageObject message = new MessageObject(Constants.MSG_QUIT);
 
         message.setMsg(Integer.toString(port));
 
@@ -132,8 +141,8 @@ public final class MessageParser {
         return message;
     }
 
-    public static Message CreatePeerIDRequest(int targetConnectionId) {
-        Message message = new Message(Constants.MSG_REQUEST_PEERID);
+    public static MessageObject CreatePeerIDRequest(int targetConnectionId) {
+        MessageObject message = new MessageObject(Constants.MSG_REQUEST_PEERID);
 
         message.setMsg("IHRE PEER ID BITTE!");
 

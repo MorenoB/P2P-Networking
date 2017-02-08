@@ -4,7 +4,8 @@ import Interfaces.ICommunicationListener;
 import Interfaces.IMessage;
 import Util.Constants;
 import Util.MessageParser;
-import data.Message;
+import data.InfoMessage;
+import data.MessageObject;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -154,7 +155,7 @@ public class Server implements Runnable {
 
         }
 
-        return new Message("NULL");
+        return new InfoMessage("NULL");
     }
     
     public boolean isReady()

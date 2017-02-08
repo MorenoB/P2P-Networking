@@ -25,38 +25,48 @@
       <Group type="103" groupAlignment="0" attributes="0">
           <Group type="102" attributes="0">
               <EmptySpace max="-2" attributes="0"/>
-              <Group type="103" groupAlignment="1" attributes="0">
-                  <Component id="jScrollPane1" max="32767" attributes="0"/>
+              <Group type="103" groupAlignment="0" attributes="0">
+                  <Component id="jScrollPane1" alignment="1" max="32767" attributes="0"/>
                   <Group type="102" alignment="0" attributes="0">
-                      <Component id="button_JoinPeerId" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace max="-2" attributes="0"/>
                       <Component id="textfield_PeerId" max="32767" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="button_JoinPeerId" min="-2" max="-2" attributes="0"/>
+                  </Group>
+                  <Component id="jScrollPane3" alignment="1" max="32767" attributes="0"/>
+                  <Group type="102" attributes="0">
+                      <Group type="103" groupAlignment="0" attributes="0">
+                          <Group type="102" alignment="0" attributes="0">
+                              <Group type="103" groupAlignment="0" max="-2" attributes="0">
+                                  <Component id="label_Port" alignment="0" max="32767" attributes="0"/>
+                                  <Component id="field_Port" alignment="0" pref="85" max="32767" attributes="0"/>
+                              </Group>
+                              <EmptySpace min="-2" pref="16" max="-2" attributes="0"/>
+                              <Component id="buton_AddPeer" min="-2" max="-2" attributes="0"/>
+                          </Group>
+                          <Component id="button_Refresh" alignment="0" min="-2" pref="451" max="-2" attributes="0"/>
+                      </Group>
+                      <EmptySpace min="0" pref="157" max="32767" attributes="0"/>
+                  </Group>
+                  <Component id="label_message_txt" min="-2" max="-2" attributes="0"/>
+                  <Component id="label_message_peerId" alignment="0" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace type="separate" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="0" attributes="0">
+                  <Group type="102" attributes="0">
+                      <Component id="label_id" max="32767" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="label_ID_value" min="-2" pref="107" max="-2" attributes="0"/>
                   </Group>
                   <Group type="102" alignment="1" attributes="0">
-                      <Group type="103" groupAlignment="0" max="-2" attributes="0">
-                          <Component id="buton_AddPeer" alignment="0" max="32767" attributes="0"/>
-                          <Component id="label_Port" alignment="0" max="32767" attributes="0"/>
-                          <Component id="field_Port" alignment="0" max="32767" attributes="0"/>
-                      </Group>
+                      <Component id="label_address" max="32767" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
-                      <Component id="button_Refresh" pref="193" max="32767" attributes="0"/>
+                      <Component id="label_Address_Value" max="32767" attributes="0"/>
                   </Group>
-              </Group>
-              <EmptySpace type="separate" min="-2" max="-2" attributes="0"/>
-              <Group type="103" groupAlignment="0" attributes="0">
                   <Group type="102" alignment="0" attributes="0">
-                      <Group type="103" groupAlignment="0" attributes="0">
-                          <Component id="label_id" min="-2" pref="57" max="-2" attributes="0"/>
-                          <Component id="label_address" min="-2" pref="73" max="-2" attributes="0"/>
-                      </Group>
-                      <EmptySpace min="-2" pref="84" max="-2" attributes="0"/>
-                      <Group type="103" groupAlignment="0" attributes="0">
-                          <Component id="label_ID_value" pref="253" max="32767" attributes="0"/>
-                          <Component id="label_Address_Value" max="32767" attributes="0"/>
-                      </Group>
+                      <Component id="lable_LastRecievedMessage" min="-2" pref="258" max="-2" attributes="0"/>
+                      <EmptySpace min="0" pref="6" max="32767" attributes="0"/>
                   </Group>
-                  <Component id="lable_LastRecievedMessage" alignment="1" max="32767" attributes="0"/>
-                  <Component id="jScrollPane2" alignment="1" max="32767" attributes="0"/>
+                  <Component id="jScrollPane2" max="32767" attributes="0"/>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
           </Group>
@@ -67,40 +77,48 @@
           <Group type="102" alignment="0" attributes="0">
               <EmptySpace max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
-                  <Component id="jScrollPane1" min="-2" max="-2" attributes="0"/>
-                  <Component id="jScrollPane2" min="-2" max="-2" attributes="0"/>
+                  <Component id="jScrollPane1" pref="257" max="32767" attributes="0"/>
+                  <Component id="jScrollPane2" max="32767" attributes="0"/>
               </Group>
-              <EmptySpace pref="30" max="32767" attributes="0"/>
+              <EmptySpace max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
-                  <Group type="102" alignment="1" attributes="0">
-                      <Group type="103" groupAlignment="3" attributes="0">
-                          <Component id="buton_AddPeer" alignment="3" min="-2" max="-2" attributes="0"/>
-                          <Component id="button_Refresh" alignment="3" min="-2" max="-2" attributes="0"/>
-                          <Component id="lable_LastRecievedMessage" alignment="3" min="-2" max="-2" attributes="0"/>
-                      </Group>
-                      <EmptySpace min="-2" pref="1" max="-2" attributes="0"/>
-                      <Component id="label_Port" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace min="-2" pref="3" max="-2" attributes="0"/>
-                      <Component id="field_Port" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace type="separate" max="-2" attributes="0"/>
-                      <Group type="103" groupAlignment="3" attributes="0">
-                          <Component id="button_JoinPeerId" alignment="3" min="-2" max="-2" attributes="0"/>
-                          <Component id="textfield_PeerId" alignment="3" min="-2" max="-2" attributes="0"/>
-                      </Group>
-                  </Group>
-                  <Group type="102" alignment="1" attributes="0">
+                  <Group type="102" attributes="0">
                       <Group type="103" groupAlignment="3" attributes="0">
                           <Component id="label_address" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="label_Address_Value" alignment="3" max="32767" attributes="0"/>
                       </Group>
-                      <EmptySpace max="-2" attributes="0"/>
+                      <EmptySpace type="separate" max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="3" attributes="0">
                           <Component id="label_id" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="label_ID_value" alignment="3" min="-2" max="-2" attributes="0"/>
                       </Group>
+                      <EmptySpace type="separate" max="-2" attributes="0"/>
+                      <Component id="lable_LastRecievedMessage" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace min="-2" pref="9" max="-2" attributes="0"/>
+                  </Group>
+                  <Group type="102" alignment="1" attributes="0">
+                      <Component id="button_Refresh" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace min="-2" pref="1" max="-2" attributes="0"/>
+                      <Component id="label_Port" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace min="-2" pref="2" max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="3" attributes="0">
+                          <Component id="field_Port" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="buton_AddPeer" alignment="3" min="-2" max="-2" attributes="0"/>
+                      </Group>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="label_message_txt" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace min="-2" pref="1" max="-2" attributes="0"/>
                   </Group>
               </Group>
-              <EmptySpace min="-2" pref="51" max="-2" attributes="0"/>
+              <Component id="jScrollPane3" min="-2" max="-2" attributes="0"/>
+              <EmptySpace max="-2" attributes="0"/>
+              <Component id="label_message_peerId" min="-2" max="-2" attributes="0"/>
+              <EmptySpace min="-2" pref="2" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="button_JoinPeerId" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="textfield_PeerId" alignment="3" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace max="-2" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
@@ -155,17 +173,19 @@
     </Component>
     <Component class="javax.swing.JLabel" name="label_Address_Value">
       <Properties>
+        <Property name="horizontalAlignment" type="int" value="4"/>
         <Property name="text" type="java.lang.String" value=" "/>
       </Properties>
     </Component>
     <Component class="javax.swing.JLabel" name="label_ID_value">
       <Properties>
+        <Property name="horizontalAlignment" type="int" value="4"/>
         <Property name="text" type="java.lang.String" value=" "/>
       </Properties>
     </Component>
     <Component class="javax.swing.JToggleButton" name="button_Refresh">
       <Properties>
-        <Property name="text" type="java.lang.String" value="Refresh List"/>
+        <Property name="text" type="java.lang.String" value="Refresh Peer List"/>
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="button_RefreshActionPerformed"/>
@@ -173,17 +193,17 @@
     </Component>
     <Component class="javax.swing.JLabel" name="label_id">
       <Properties>
-        <Property name="text" type="java.lang.String" value="Peer ID"/>
+        <Property name="text" type="java.lang.String" value="Peer ID:"/>
       </Properties>
     </Component>
     <Component class="javax.swing.JLabel" name="label_address">
       <Properties>
-        <Property name="text" type="java.lang.String" value="Address"/>
+        <Property name="text" type="java.lang.String" value="Address:"/>
       </Properties>
     </Component>
     <Component class="javax.swing.JButton" name="button_JoinPeerId">
       <Properties>
-        <Property name="text" type="java.lang.String" value="Join Peer ID"/>
+        <Property name="text" type="java.lang.String" value="Send Message"/>
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="button_JoinPeerIdActionPerformed"/>
@@ -221,7 +241,31 @@
     </Container>
     <Component class="javax.swing.JLabel" name="lable_LastRecievedMessage">
       <Properties>
-        <Property name="text" type="java.lang.String" value="LastRecievedMessage"/>
+        <Property name="text" type="java.lang.String" value="LastRecievedMessage:"/>
+      </Properties>
+    </Component>
+    <Container class="javax.swing.JScrollPane" name="jScrollPane3">
+      <AuxValues>
+        <AuxValue name="autoScrollPane" type="java.lang.Boolean" value="true"/>
+      </AuxValues>
+
+      <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
+      <SubComponents>
+        <Component class="javax.swing.JTextPane" name="textpane_messageField">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="TEST MESSAGE"/>
+          </Properties>
+        </Component>
+      </SubComponents>
+    </Container>
+    <Component class="javax.swing.JLabel" name="label_message_txt">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Message:"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JLabel" name="label_message_peerId">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Peer ID"/>
       </Properties>
     </Component>
   </SubComponents>

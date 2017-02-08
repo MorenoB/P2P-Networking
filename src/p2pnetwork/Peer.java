@@ -10,10 +10,11 @@ import communication.Client;
 import data.JoinMessage;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import data.Message;
+import data.MessageObject;
 import data.PeerReference;
 import data.RoutingTableMessage;
 import data.FindClosestMessage;
+import data.InfoMessage;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedDeque;
@@ -48,9 +49,9 @@ public class Peer implements ICommunicationListener, Runnable {
 
     private final List<String> processedGuids;
 
-    private Message lastRecievedMessage;
+    private IMessage lastRecievedMessage;
 
-    private final ConcurrentLinkedDeque<Message> clientMessageQueue;
+    private final ConcurrentLinkedDeque<IMessage> clientMessageQueue;
 
     private Constants.PEER_STATUS peerStatus;
 
@@ -124,7 +125,7 @@ public class Peer implements ICommunicationListener, Runnable {
     private void DisconnectPeerFromOtherPeer(boolean instant) {
         //Notify server we want to close connection.
 
-        Message quitMesssage = MessageParser.CreateQuitMessage(connectedToOtherId, port);
+        MessageObject quitMesssage = MessageParser.CreateQuitMessage(connectedToOtherId, port);
 
         if (instant) {
             //client.writeMessage(quitMesssage);
@@ -198,9 +199,10 @@ public class Peer implements ICommunicationListener, Runnable {
     }
 
     public void SendMessage(int toPeerId, String msg) {
-        Message message = new Message(msg);
+        InfoMessage message = new InfoMessage(msg);
 
         message.setTargetId(toPeerId);
+        message.setSourceId(getId());
 
         clientMessageQueue.add(message);
     }
@@ -210,7 +212,7 @@ public class Peer implements ICommunicationListener, Runnable {
         return ownRef;
     }
 
-    private void SendMessageToPeerReference(Message message, PeerReference peerReference) {
+    private void SendMessageToPeerReference(IMessage message, PeerReference peerReference) {
         ConnectToAddress(peerReference.getAddress(), peerReference.getPortNumber());
         WriteMessage(message);
     }
@@ -373,7 +375,7 @@ public class Peer implements ICommunicationListener, Runnable {
             return;
         }
 
-        Message msgToSend = clientMessageQueue.peek();
+        IMessage msgToSend = clientMessageQueue.peek();
 
         if (msgToSend != null) {
 
@@ -626,7 +628,7 @@ public class Peer implements ICommunicationListener, Runnable {
         return lastPeerRequest;
     }
 
-    public Message getLastRecievedMessage() {
+    public IMessage getLastRecievedMessage() {
         return lastRecievedMessage;
     }
 
@@ -827,16 +829,19 @@ public class Peer implements ICommunicationListener, Runnable {
                 //If we have the target peer ref, connect to it
                 if (searchResponse.getHasTargetReference()) {
 
-                    Message debugMsg = new Message("NOT IMPLEMENTED");
+                    IMessage debugMsg = new InfoMessage("NOT IMPLEMENTED");
                     
-                    if(clientMessageQueue.peek().getMessageType() == Constants.MSG_MESSAGE)
+                    if(clientMessageQueue.peek() != null)
                     {
-                        debugMsg = clientMessageQueue.poll();
-                    }
-                    else if(clientMessageQueue.peek().getMessageType() == Constants.MSG_REQUEST_SEARCH_PEERREF)
-                    {
-                        clientMessageQueue.poll();
-                        debugMsg = clientMessageQueue.poll();
+                        if(clientMessageQueue.peek().getMessageType() == Constants.MSG_MESSAGE)
+                        {
+                            debugMsg = clientMessageQueue.poll();
+                        }
+                        else if(clientMessageQueue.peek().getMessageType() == Constants.MSG_REQUEST_SEARCH_PEERREF)
+                        {
+                            clientMessageQueue.poll();
+                            debugMsg = clientMessageQueue.poll();
+                        }
                     }
                     
                     SendMessageToPeerReference(debugMsg ,newlyAcuiredPeerRef);
@@ -874,11 +879,11 @@ public class Peer implements ICommunicationListener, Runnable {
         }
 
         LOGGER.log(Level.INFO, "Peer {0} recieved {1}", new Object[]{peerID, recievedMsg.getMsg()});
-        lastRecievedMessage = (Message) recievedMsg;
+        lastRecievedMessage = (IMessage) recievedMsg;
         processedGuids.add(recievedMsg.getGuid());
         
         peerListeners.stream().forEach((sl) -> {
-            sl.OnMessageReceived();
+            sl.OnMessageReceived(lastRecievedMessage);
         });
     }
 

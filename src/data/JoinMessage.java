@@ -12,7 +12,7 @@ import Util.Constants;
  *
  * @author Moreno
  */
-public class JoinMessage extends Message implements IMessage{
+public class JoinMessage extends MessageObject implements IMessage{
 
     private final PeerReference joiningPeer;
     

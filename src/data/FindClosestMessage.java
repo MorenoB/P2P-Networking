@@ -7,7 +7,7 @@ import Util.Constants;
  *
  * @author Moreno
  */
-public class FindClosestMessage extends Message implements IMessage {
+public class FindClosestMessage extends MessageObject implements IMessage {
 
     private final PeerReference targetPeerReference;
     private final PeerReference sourcePeerReference;
