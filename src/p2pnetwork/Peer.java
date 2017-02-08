@@ -140,6 +140,19 @@ public class Peer implements ICommunicationListener, Runnable {
             clientMessageQueue.add(quitMesssage);
         }
     }
+    
+    private void WriteMessage(IMessage message)
+    {
+        switch(message.getMessageType())
+        {
+            case Constants.MSG_REQUEST_SEARCH_PEERREF:
+            case Constants.MSG_RESPONSE_SEARCH_PEERREF:
+            case Constants.MSG_MESSAGE:
+                peerStatus = Constants.PEER_STATUS.IDLE;
+                break;
+        }
+        client.writeMessage(message);
+    }
 
     private void SetID(byte newId) {
         if(getId() == newId)
@@ -199,7 +212,7 @@ public class Peer implements ICommunicationListener, Runnable {
 
     private void SendMessageToPeerReference(Message message, PeerReference peerReference) {
         ConnectToAddress(peerReference.getAddress(), peerReference.getPortNumber());
-        client.writeMessage(message);
+        WriteMessage(message);
     }
 
     public void ConnectToId(int id) {
@@ -372,7 +385,7 @@ public class Peer implements ICommunicationListener, Runnable {
 
             //Special case; Close down client if we detect a QUIT message.
             if (clientIsConnected && msgToSend.getMessageType() == Constants.MSG_QUIT) {
-                client.writeMessage(clientMessageQueue.poll());
+                WriteMessage(clientMessageQueue.poll());
 
                 clientMessageQueue.removeIf(p -> p.getMessageType() == Constants.MSG_QUIT);
                 connectedToOtherId = -1;
@@ -389,11 +402,7 @@ public class Peer implements ICommunicationListener, Runnable {
                 ConnectToId(msgToSend.getTargetId());
             } else {
                 
-                client.writeMessage(clientMessageQueue.poll());
-                
-                if(msgToSend.getMessageType() == Constants.MSG_REQUEST_SEARCH_PEERREF)
-                    peerStatus = Constants.PEER_STATUS.WAITINGFORCLOSESTRESPONSE;
-                
+                WriteMessage(clientMessageQueue.poll());
             }
         }
 
@@ -788,7 +797,7 @@ public class Peer implements ICommunicationListener, Runnable {
                     responseFoundMessage.setHasTargetReference(true);
 
                     //Inform the connection that we have succesfully found the peerRef
-                    clientMessageQueue.add(responseFoundMessage);
+                    SendMessageToPeerReference(responseFoundMessage, sourceRef);
 
                     break;
                 }
