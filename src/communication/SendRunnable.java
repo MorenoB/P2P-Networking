@@ -43,13 +43,16 @@ class SendRunnable implements Runnable {
         running = true;
 
         while (running) {
+            try {
+                Thread.sleep(Constants.CYCLEWAIT);
+            } catch (Throwable e) {
+                LOGGER.log(Level.SEVERE, name, e);
+            }
+
             JSONObject lastObj = queue.poll();
+
             if (lastObj == null) {
-                try {
-                    Thread.sleep(Constants.CYCLEWAIT);
-                } catch (Throwable e) {
-                    LOGGER.log(Level.SEVERE, name, e);
-                }
+                continue;
             } else {
                 // Send outputLine
                 out.println(lastObj);

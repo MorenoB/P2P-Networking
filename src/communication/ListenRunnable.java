@@ -1,6 +1,7 @@
 package communication;
 
 import Interfaces.ICommunicationListener;
+import Util.Constants;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -46,6 +47,12 @@ class ListenRunnable implements Runnable {
 
         try {
             while (running) {
+                
+                try {
+                    Thread.sleep(Constants.CYCLEWAIT);
+                } catch (Throwable e) {
+                    LOGGER.log(Level.SEVERE, name, e);
+                }
 
                 if ((inputLine = in.readLine()) == null) {
                     continue;
