@@ -219,6 +219,10 @@ public class Peer implements ICommunicationListener, Runnable {
 
     private void SendMessageToPeerReference(IMessage message, PeerReference peerReference) {
         ConnectToAddress(peerReference.getAddress(), peerReference.getPortNumber());
+        if(clientMessageQueue.contains(message))
+        {
+            clientMessageQueue.remove(message);
+        }
         WriteMessage(message);
     }
 
@@ -668,6 +672,20 @@ public class Peer implements ICommunicationListener, Runnable {
     public IMessage getLastRecievedMessage() {
         return lastRecievedMessage;
     }
+    
+    private IMessage retrieveLastNonSearchRequestMessageFromQueueRecursive()
+    {
+        IMessage message = clientMessageQueue.peek();
+        
+        if(message.getMessageType() == Constants.MSG_REQUEST_SEARCH_PEERREF)
+        {
+            clientMessageQueue.poll();
+            return retrieveLastNonSearchRequestMessageFromQueueRecursive();
+        }
+        
+        return clientMessageQueue.poll();
+        
+    }
 
     private int getNextAvailableId() {
         for (int i = 0; i < availablePeerIds.size(); i++) {
@@ -866,19 +884,9 @@ public class Peer implements ICommunicationListener, Runnable {
                 //If we have the target peer ref, connect to it
                 if (searchResponse.getHasTargetReference()) {
 
-                    IMessage debugMsg = new InfoMessage("NOT IMPLEMENTED");
+                    IMessage lastNonSearchRequestMessage = retrieveLastNonSearchRequestMessageFromQueueRecursive();
 
-                    if (clientMessageQueue.peek() != null) {
-                        if (clientMessageQueue.peek().getMessageType() == Constants.MSG_MESSAGE) {
-                            debugMsg = clientMessageQueue.poll();
-                        } else if (clientMessageQueue.peek().getMessageType() == Constants.MSG_REQUEST_SEARCH_PEERREF) {
-                            clientMessageQueue.poll();
-                            debugMsg = clientMessageQueue.poll();
-                        }
-                    }
-
-                    SendMessageToPeerReference(debugMsg, newlyAcuiredPeerRef);
-
+                    SendMessageToPeerReference(lastNonSearchRequestMessage, newlyAcuiredPeerRef);
                     peerStatus = Constants.PEER_STATUS.SENDINGMSG;
 
                     break;
