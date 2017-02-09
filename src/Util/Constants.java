@@ -19,6 +19,8 @@ public final class Constants {
     
     public static final int BOOTPEER_ID = P2PSIZE;
     
+    public static final int PEER_WILL_PING_AFTER_SECONDS = 3;
+    
     
     //Message types
     public static final int MSG_QUIT = 1;
