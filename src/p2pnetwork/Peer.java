@@ -156,6 +156,7 @@ public class Peer implements ICommunicationListener, Runnable {
                 break;
         }
         client.writeMessage(message);
+        previousTimeMessageSent = Instant.now().getEpochSecond();
     }
 
     private void SetID(byte newId) {
@@ -382,14 +383,15 @@ public class Peer implements ICommunicationListener, Runnable {
 
         IMessage msgToSend = clientMessageQueue.peek();
 
-        if (msgToSend == null && !isBootpeer()) {
-            long secondsElapsed = Instant.now().getEpochSecond() - previousTimeMessageSent;
+        if(Constants.ALLOW_PERIODICALLY_CHECK_PEER_REFERENCES_ARE_ALIVE)
+            if (msgToSend == null && !isBootpeer()) {
+                long secondsElapsed = Instant.now().getEpochSecond() - previousTimeMessageSent;
 
-            if (secondsElapsed > Constants.PEER_WILL_PING_AFTER_SECONDS) {
-                CheckPeerReferencesConnections();
-                previousTimeMessageSent = Instant.now().getEpochSecond();
+                if (secondsElapsed > Constants.PEER_WILL_PING_AFTER_SECONDS) {
+                    CheckPeerReferencesConnections();
+                    previousTimeMessageSent = Instant.now().getEpochSecond();
+                }
             }
-        }
 
         if (msgToSend != null) {
 
