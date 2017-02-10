@@ -1,2 +1,21 @@
 language: java
 sudo: false
+
+env:
+  global:
+   # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
+   #   via the "travis encrypt" command using the project repo's public key
+   - secure: "qAETY5gU54gOJ148V4rG4MRS7d1DAA/BOO+tnnkrKBsgnZmNBk5aqm3U9ktG9cAgyB1PUgNhmWloCmRvSfo5zVBnSl8qctYIZj55xH8HzfFXwfD+X37PX35M0KL+rjV26iggqdQFlprUC6TND3mf9rDNlZ5Rzig+RowDIyV4/zlw9VUGIhFeA9WKJXVjSF/nr5ujixVpSzXKaRPjODWcProYT5zbsDkf7e3PF7MTYizJuXLrP1o1u6SDzHAeS2wc44MMKbHw4jWqokIeMwqQCSlJMvnXe+PJkynLbDIXEwfK0M08Yg27IYjny/4GHkP98aAzh4AnrxC+BtjxutKAHPGr5V37vq1OaMp3yB5CkJTGybMaiibd0W8EcMIQ7/PbTEzlb9LvAkPcKy5o4kmlncGmL3A/3UajzyTUIAvvDZz4ju+ZTfjOsuYzvx41bt7pF+ObYGmn2MOgo6U04nsk9L3AjbmaCIoKgvSHqI+9bSxNGplMohbuOnsnX8T0aHsqo4ZSlvCWUPE17vovGQk/Z4Z5GR47ea0MlqHV+WZFwC1oEcRoQ++ivRctJMwuSs68KEMf6SWRhRqT0ywb3oFL1Nq5lj+CPVOPguKZ340P1Y6MrLWUGDVqCgDjTUeyvK4rJo94Q8KEhvWcr3jeb+iFfVo3ngjjQFrp0193n1EDcdM="
+
+before_install:
+      - echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
+
+addons:
+  coverity_scan:
+    project:
+      name: "MorenoB/P2P-Networking"
+      description: "Build submitted via Travis CI"
+    notification_email: hahalol235@hotmail.com
+    build_command_prepend: "ant clean"
+    build_command:   "ant compile"
+    branch_pattern: coverity_scan
