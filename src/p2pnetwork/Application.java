@@ -26,7 +26,7 @@ public class Application extends javax.swing.JFrame implements IPeerListener{
     
     private Peer selectedPeer;
     
-    private VisualizerRunnable visualizer;
+    private final VisualizerRunnable visualizer;
 
     /**
      * Creates new form Application
@@ -74,19 +74,41 @@ public class Application extends javax.swing.JFrame implements IPeerListener{
     }
 
     private void UpdatePeerListData() {
+        
+        if(peerListModel.size() != peerList.size())
+            RegeneratePeerList();
+        
+        for (int i = 0; i < peerList.size(); i++) {
+            Peer peer = peerList.get(i);
+            
+            String displayName = GetPeerDisplayName(peer);
+            peerListModel.set(i, displayName);
+            
+        }
+        
+        visualizer.UpdatePeerList(peerList);
+    }
+    
+    private void RegeneratePeerList()
+    {
         peerListModel.clear();
 
         for (int i = 0; i < peerList.size(); i++) {
             Peer peer = peerList.get(i);
             
-            String suffix = peer.isBootpeer() ? "(BOOT) " : "";
-            
-            String displayName = suffix + "Peer " + peer.getId() + " status= " + peer.GetPeerStatus() + " references= " + peer.getPeerReferences();
+            String displayName = GetPeerDisplayName(peer);
 
             peerListModel.add(i, displayName);
         }
+    }
+    
+    private String GetPeerDisplayName(Peer peer)
+    {
+        String suffix = peer.isBootpeer() ? "(BOOT) " : "";
+            
+        String displayName = suffix + "Peer " + peer.getId() + " status = " + peer.GetPeerStatus() + " references = " + peer.getPeerReferences();
         
-        visualizer.UpdatePeerList(peerList);
+        return displayName;
     }
 
     /**
